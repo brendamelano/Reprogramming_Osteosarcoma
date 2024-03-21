@@ -5,15 +5,19 @@ library(tidyr)
 library(VennDiagram)
 library(ggpubr)
 library(tidyverse)
-library(DESeq2)
+#library(DESeq2)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
+install.packages("DescTools")
 library(DescTools)
 library(stringdist)
 library(ggplot2)
 library(grid)
 library(png)
+if (!require("remotes")) install.packages("remotes")
+remotes::install_github("AndriSignorell/DescTools")
+
 
 
 
@@ -23,9 +27,9 @@ library(png)
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/13_384_ctrl13_1.fastq.gz.out2.txt',
-                '~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/14_384_ctrl13_2.fastq.gz.out2.txt',
-                '~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/15_384_ctrl13_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/13_384_ctrl13_1.fastq.gz.out2.txt',
+                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/14_384_ctrl13_2.fastq.gz.out2.txt',
+                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/15_384_ctrl13_3.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -142,9 +146,9 @@ ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device =
 
 
 # Reading in the ATR gDNA barcodes
-file_paths <- c('~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/19_384_atr_1.fastq.gz.out2.txt',
-                '~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/20_384_atr_2.fastq.gz.out2.txt',
-                '~/Desktop/LT_gDNA_barcode_analysis/15_day_treatments/counts/21_384_atr_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/19_384_atr_1.fastq.gz.out2.txt',
+                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/20_384_atr_2.fastq.gz.out2.txt',
+                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/21_384_atr_3.fastq.gz.out2.txt')
 
 
 # Applying the process file function to the file paths
@@ -216,6 +220,40 @@ test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 OS384_atr_final <- test_sample
 
 
+# Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
+OS384_atr_final <- merge(OS384_atr_final, OS384ctrl0_filtered, by = "barcode")
+
+## General QC
+
+
+# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean'
+raw_counts_df <- OS384_atr_final %>%
+  select(-contains("log"), -contains("scaled"), -contains("mean"))
+
+raw_counts_df <- raw_counts_df[,-1]
+
+# Compute the sum of each column
+sums <- colSums(raw_counts_df)
+
+sums_df <- data.frame(
+  sample_type = names(sums),
+  total_sum = sums
+)
+
+# Plotting the sums
+# Plotting the total sums of counts for each sample column
+
+ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Total Sums of Counts per Sample Type", x = "Sample Type", y = "Total Counts") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate X labels for readability
+
+
+
+
+###
+
 # Running the function
 
 #OS384_atr_final <- test_barcode_analysis(test_sample = OS384_atr, time_0_barcodes, ctrl_sample = OS384ctrl_6_final)
@@ -228,31 +266,28 @@ OS384_atr_final <- test_sample
 atr_diff_merged <- OS384_atr_final %>% mutate(difference_atr_log2 = barcode_log_mean_ctrl_13 - barcode_mean_atr)
 
 
-# Scaling the differences to get the z-scores
-atr_diff_merged <- atr_diff_merged %>% mutate(log2_diff_zscore_atr = scale(difference_atr_log2))
+# # Scaling the differences to get the z-scores
+# atr_diff_merged <- atr_diff_merged %>% mutate(log2_diff_zscore_atr = scale(difference_atr_log2))
+# 
+# 
+# # Ordering based on the zscores
+# atr_diff_ordered <- atr_diff_merged[order(atr_diff_merged$log2_diff_zscore_atr, decreasing = T), ]
 
 
-# Ordering based on the zscores
-atr_diff_ordered <- atr_diff_merged[order(atr_diff_merged$log2_diff_zscore_atr, decreasing = T), ]
 
+# ## Plotting barcodes
+# atr_diff_ordered_positive <-  filter(atr_diff_ordered, log2_diff_zscore_atr > 0)
+# 
 
-# Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-atr_diff_ordered <- merge(atr_diff_ordered, OS384ctrl0_filtered, by = "barcode")
-
-
-## Plotting barcodes
-atr_diff_ordered_positive <-  filter(atr_diff_ordered, log2_diff_zscore_atr > 0)
-
-
-# plotting z score v counts at time 0
-ggplot(atr_diff_ordered, aes(x = barcode_log_mean_ctrl_0 , y = log2_diff_zscore_atr )) + 
-  geom_point() +
-  scale_x_continuous(trans='log10') + 
-  geom_line(y=1.96) + 
-  geom_line(y = -1.96) + 
-  theme_minimal() + 
-  ylab('Z-score of log2 difference') + 
-  ggtitle('Barcode selection with ATR inhibitor')
+# # plotting z score v counts at time 0
+# ggplot(atr_diff_ordered, aes(x = barcode_log_mean_ctrl_0 , y = log2_diff_zscore_atr )) + 
+#   geom_point() +
+#   scale_x_continuous(trans='log10') + 
+#   geom_line(y=1.96) + 
+#   geom_line(y = -1.96) + 
+#   theme_minimal() + 
+#   ylab('Z-score of log2 difference') + 
+#   ggtitle('Barcode selection with ATR inhibitor')
 
 
 

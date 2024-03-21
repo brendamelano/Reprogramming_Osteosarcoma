@@ -71,7 +71,7 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>%
 
 
 # plotting the ordered counts to identify the elbow
-plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y')
+#plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y')
 
 
 plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y', xlim = c(25, 250), ylim = c(20,500))
@@ -81,9 +81,11 @@ plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y', xlim = c(25, 250), ylim =
 # counts in order
 OS384ctrl0_filtered <- OS384ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 > 2)
 
+names(OS384ctrl0_filtered)[1] <- "barcode"
+
 
 # making the list of barcodes for OS384 time 0 for a whitelist
-time_0_barcodes <- OS384ctrl0_filtered$V1
+time_0_barcodes <- OS384ctrl0_filtered$barcode
 
 
 # writing the csv to the single cell folder
@@ -293,7 +295,7 @@ seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
 
 
 
-#############      052 TIME 0 BARCODES      ################
+#############      OS052 TIME 0 BARCODES      ################
 
 
 
@@ -308,7 +310,7 @@ result_list <- lapply(file_paths, process_file)
 
 
 # Merging the data frames by 'V1'
-OS742_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
+OS052_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
 # Renaming the count columns
@@ -317,7 +319,7 @@ OS742_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list
 
 
 # Scaling the data based on cpm
-OS742_ctrl_0_scaled <- cpm_scaling(OS742_ctrl_0_merged)
+OS742_ctrl_0_scaled <- cpm_scaling(OS052_ctrl_0_merged)
 
 
 # Renaming the count columns
@@ -362,20 +364,24 @@ plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y', xlim = c(0, 250),
 abline(v = 2, col = "red")
 
 
-# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
-# counts in order
-OS742ctrl0_filtered <- OS742ctrl0_log_scaled %>% filter(barcode_cpm_mean_ctrl_0 > 3)
 
-
-# Making the list of barcodes for OS384 time 0 for a whitelist
-time_0_barcodes <- OS742ctrl0_filtered$barcode
 
 
 ## performing regression for r^2 value of replicates ##
 
+OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
+  rowwise() %>%
+  mutate(StdDev = sd(c(barcode_count_ctrl_0_1, barcode_count_ctrl_0_2, barcode_count_ctrl_0_3), na.rm = TRUE)) %>%
+  ungroup()
+
+threshold <- 8000
+
+filtered_df <- OS742ctrl0_log_scaled %>%
+  filter(StdDev <= threshold)
+
 
 # Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS742ctrl0_log_scaled)
+model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = filtered_df)
 
 
 # Extract r-squared and p-value
@@ -383,7 +389,7 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot for replicate correlation in D0 control
-first_two_replicates_384_D0 <- ggplot(OS742ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
   geom_point() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -395,9 +401,22 @@ first_two_replicates_384_D0 <- ggplot(OS742ctrl0_log_scaled, aes(barcode_count_c
             label = paste("R-squared =", round(r_squared, 2)),
             hjust = 0, vjust = 1, parse = TRUE)
 
+first_two_replicates_052_D0
+
+# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
+# counts in order
+OS742ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
+
+
+
+# Making the list of barcodes for OS384 time 0 for a whitelist
+time_0_barcodes <- OS742ctrl0_filtered$barcode
+
+
+
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_384_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
+ggsave("~/Desktop/first_two_replicates_052_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
 
 
 
@@ -425,7 +444,7 @@ OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
 
 
 # writing the csv to the single cell folder
-write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
+#write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 
 
 seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
