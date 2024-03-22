@@ -113,19 +113,6 @@ test_barcode_analysis <- function(test_sample, time_0_barcodes, ctrl_sample){
 }
 
 
-# computing the difference of the z scores
-paste0(test_condition, "_diff") <- paste0(test_condition, "_diff") %>% mutate(paste0(test_condition, "_diff_zscores") = paste0("barcode_count_", ctrl_condition) - paste0("barcode_count_", test_condition))
-
-
-# ordering based on the difference of z scores
-paste0(test_condition, "_diff_ordered") <- paste0(test_condition, "_diff")[order(paste0(test_condition, "_diff")$paste0("difference_", test_condition, "_zscores"), decreasing = T), ]
-
-
-# filtering the z-scores to keep the top dropouts
-z_score_diff_filtered_atr <- atr_diff_ordered[1:100,]
-
-
-
 
   
 

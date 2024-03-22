@@ -1,28 +1,26 @@
 
 # reading in sample csv
-sample_csv <- read.csv('~/Downloads/crispr_example_feature_ref.csv')
+sample_csv <- read.csv('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/LT_whitelist_barcodes_052_inVivo - LT_whitelist_barcodes_052_inVivo.csv')
 
 
-## change IDs to the actual barcode sequence
-
-
-# Adding the sequence after the LT barcode to recognize the LT barcode
-sample_csv$pattern <- '(BC)CCTAGAGGGCCCGTTTAAAC'
-
+# taking the reverse complement of the white list barcodes
 
 # Adding the t0 barcodes to the csv
 time_0_barcodes_df <- as.data.frame(time_0_barcodes)
 
+# Removing 200 rows
+sample_csv <- sample_csv[-(1:200),]
+
 # merging the barcodes with the sample csv
 sample_csv_1 <- merge(time_0_barcodes_df, sample_csv)
 
-
+sample_csv_1 <- sample_csv_1[,-2]
 
 names(sample_csv_1)[1] <- 'sequence'
 
 
 
-sample_csv_2 <- sample_csv_1[1:961,]
+sample_csv_2 <- sample_csv_1[1:900,]
 
 sample_csv_3 <- sample_csv_2[,-6]
 

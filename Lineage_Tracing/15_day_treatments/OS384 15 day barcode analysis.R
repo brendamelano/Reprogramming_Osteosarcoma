@@ -612,31 +612,6 @@ OS384_logReg_df <- rbind(OS384_cis_logReg, OS384_ctrl13_logReg)
 ##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   #############
 
 
-
-# depleted barcodes based on the z-scores of the log2 difference
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis > 1.8)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf > 1.8)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr > 1.8)
-
-
-# enriched barcodes
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis < -2)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf < -2)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr < -2)
-
-
-# filtering based on log fold change to identify positive fold change
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-
-
-# Making a vector of the top dropout barcodes for all the treatments
-cis_barcodes <- z_score_diff_filtered_cis$barcode
-pf_barcodes <- z_score_diff_filtered_pf$barcode
-atr_barcodes <- z_score_diff_filtered_atr$barcode
-
-
 # Concatenating the barcode lists and keeping the unique barcodes
 deplted_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
 

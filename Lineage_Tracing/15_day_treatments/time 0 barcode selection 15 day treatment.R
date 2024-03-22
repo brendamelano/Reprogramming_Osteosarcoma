@@ -313,11 +313,6 @@ result_list <- lapply(file_paths, process_file)
 OS052_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Renaming the count columns
-# Make sure that this renaming is not needed for the subsequent function
-#names(OS742_ctrl_0_merged)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
-
-
 # Scaling the data based on cpm
 OS052_ctrl_0_scaled <- cpm_scaling(OS052_ctrl_0_merged)
 
@@ -331,51 +326,51 @@ names(OS052_ctrl_0_scaled)[5:7] <- c("barcode_count_ctrl_0_1_scaled", "barcode_c
 
 
 # Computing logs of cpm values
-OS742ctrl0_log_scaled <- OS052_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
+OS052ctrl0_log_scaled <- OS052_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
 
 
 # Computing the mean log value per barcode for the merged dataframe
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% 
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% 
   mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_log", 
                                                         "barcode_count_ctrl_0_2_log", 
                                                         "barcode_count_ctrl_0_3_log"))))
 
 
 # Computing the mean log value per barcode for the merged dataframe
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% 
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% 
   mutate(barcode_cpm_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled", 
                                                         "barcode_count_ctrl_0_2_scaled", 
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
 
 
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
-  arrange(desc(barcode_cpm_mean_ctrl_0))
+OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
-
-# plotting the ordered counts to identify the elbow
-# plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y')
-# abline(v = 400, col = "red")
-
-
-plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y', xlim = c(0, 250), ylim = c(20,500))
-abline(v = 2, col = "red")
-
+# Use ggplot to create the plot
+ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  geom_point() + # Add points
+  scale_y_log10() + # Log scale for Y axis
+  geom_vline(xintercept = 900, color = "red") + # Vertical line at x = 900
+  labs(title = "OS052 Lineage Tracing ranked barcode plot", y = "mean cpm", x = "") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+  panel.grid.minor = element_blank()) # Remove minor grid lines
 
 
 
 
 # Computing standard deviation of the barcodes
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
   rowwise() %>%
   mutate(StdDev = sd(c(barcode_count_ctrl_0_1, barcode_count_ctrl_0_2, barcode_count_ctrl_0_3), na.rm = TRUE)) %>%
   ungroup()
 
 threshold <- 8000
 
-filtered_df <- OS742ctrl0_log_scaled %>%
+filtered_df <- OS052ctrl0_log_scaled %>%
   filter(StdDev <= threshold)
 
 
@@ -395,8 +390,8 @@ first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_lo
   xlab("Log Transformed Barcode Count - Replicate 1") +
   ylab("Log Transformed Barcode Count - Replicate 2") +
   ggtitle("OS384 Barcode Count Correlation") +
-  geom_text(x = min(OS742ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-            y = max(OS742ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+  geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+            y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
             label = paste("R-squared =", round(r_squared, 2)),
             hjust = 0, vjust = 1, parse = TRUE)
 
@@ -404,12 +399,12 @@ first_two_replicates_052_D0
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
 # counts in order
-OS742ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
+OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 
 
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
-time_0_barcodes <- OS742ctrl0_filtered$barcode
+time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
 
@@ -446,5 +441,5 @@ OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
 #write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 
 
-seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
+seq_complement(seq_reverse(dna('CACTAGAGAGGCTTCATA')))
 
