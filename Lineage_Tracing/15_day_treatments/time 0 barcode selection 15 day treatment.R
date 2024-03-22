@@ -319,19 +319,19 @@ OS052_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list
 
 
 # Scaling the data based on cpm
-OS742_ctrl_0_scaled <- cpm_scaling(OS052_ctrl_0_merged)
+OS052_ctrl_0_scaled <- cpm_scaling(OS052_ctrl_0_merged)
 
 
 # Renaming the count columns
-names(OS742_ctrl_0_scaled)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
+names(OS052_ctrl_0_scaled)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
 
 
 # Renaming the columns with scaled values
-names(OS742_ctrl_0_scaled)[5:7] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
+names(OS052_ctrl_0_scaled)[5:7] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
 
 
 # Computing logs of cpm values
-OS742ctrl0_log_scaled <- OS742_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
+OS742ctrl0_log_scaled <- OS052_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
 OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
 OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
 
@@ -356,8 +356,8 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
 
 
 # plotting the ordered counts to identify the elbow
-plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y')
-abline(v = 400, col = "red")
+# plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y')
+# abline(v = 400, col = "red")
 
 
 plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y', xlim = c(0, 250), ylim = c(20,500))
@@ -367,8 +367,7 @@ abline(v = 2, col = "red")
 
 
 
-## performing regression for r^2 value of replicates ##
-
+# Computing standard deviation of the barcodes
 OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
   rowwise() %>%
   mutate(StdDev = sd(c(barcode_count_ctrl_0_1, barcode_count_ctrl_0_2, barcode_count_ctrl_0_3), na.rm = TRUE)) %>%
