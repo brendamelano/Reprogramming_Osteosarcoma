@@ -360,8 +360,6 @@ ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
   panel.grid.minor = element_blank()) # Remove minor grid lines
 
 
-
-
 # Computing standard deviation of the barcodes
 OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
   rowwise() %>%
@@ -397,14 +395,13 @@ first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_lo
 
 first_two_replicates_052_D0
 
-# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
-# counts in order
+# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
+
 OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 
 
-
 # Making the list of barcodes for OS384 time 0 for a whitelist
-time_0_barcodes <- OS052ctrl0_filtered$barcode
+OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
 
