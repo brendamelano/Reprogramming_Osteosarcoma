@@ -10,7 +10,7 @@ library(ggplot2)
 
 
 # Read in flow data from the FACS sort for OS384 and OS742 for the pilot LT experiment
-fs <- read.flowSet(path = "~/Desktop/FACS_analysis/FACS_2022_06_06_384_742_LT/", pattern = ".fcs", alter.names = T)
+fs <- read.flowSet(path = "~/Desktop/Reprogramming_Osteosarcoma/FACS_analysis/FACS_2022_06_06_384_742_LT/", pattern = ".fcs", alter.names = T)
 
 
 
@@ -22,8 +22,7 @@ fs <- read.flowSet(path = "~/Desktop/FACS_analysis/FACS_2022_06_06_384_742_LT/",
 fs <- fs[1:2]
 
 
-# Printing the fcs file specimens
-# Should be only the 384 samples
+# Printing the fcs file specimens. Should be only the 384 samples
 pData(fs)[1:2,]
 
 
@@ -31,11 +30,11 @@ pData(fs)[1:2,]
 pData(fs)$well <- gsub("Specimen_001_","",sampleNames(fs)) 
 
 
-# removing the .fcs suffix
+# Removing the .fcs suffix
 pData(fs)$well <- gsub(".fcs","", pData(fs)$well) 
 
 
-# printing the colnames or colors of the different colors assayed
+# Printing the colnames or colors of the different colors assayed
 colnames(fs)
 
 
@@ -43,11 +42,11 @@ colnames(fs)
 colnames(fs)[colnames(fs) == "Pacific.Blue.A"] <- "BFP"
 
 
-# converting the flowset object to a gating set object
+# Converting the flowset object to a gating set object
 gs <- GatingSet(fs)
 
 
-# defining the gate for singlets
+# Defining the gate for singlets
 g.singlets <- polygonGate(filterId = "Singlets",
                           "FSC.A"=c(1.4e4,16e4,14e4,.5e4),
                           "FSC.H"=c(0.9e4,10e4,15e4,1.5e4)) 
@@ -77,7 +76,7 @@ ggcyto(gs[[1]],aes(x=FSC.A,y=SSC.A),subset="Singlets") +
   theme_bw()
 
 
-# plotting all the singlets
+# Plotting all the singlets
 ggcyto(gs,aes(x=FSC.A,y=FSC.H),subset="root") + 
   geom_hex(bins = 100)+geom_gate("Singlets")+
   geom_stats(adjust = 0.8) +
@@ -95,7 +94,7 @@ ggcyto(gs[[1]],aes(x=FSC.A,y=SSC.A),subset="Singlets") +
   ggcyto_par_set(limits = list(x = c(0,1.2e5), y = c(-1, 3e4)))
 
 
-# adding the live gate to the gating set
+# Adding the live gate to the gating set
 gs_pop_add(gs,g.live,parent="Singlets") 
 
 
@@ -117,8 +116,8 @@ g.gfp <- rectangleGate(filterId="BFP positive","BFP"=c(2000, Inf))
 gs_pop_add(gs, g.gfp,parent="Live") # add gate to GatingSet
 
 
-# recomputing the gating set object after filtering on GFP
-recompute(gs) # recalculate Gatingset
+# Recomputing the gating set object after filtering on GFP
+recompute(gs) 
 
 
 # plotting the control and BFP positive cells
