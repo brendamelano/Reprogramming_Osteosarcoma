@@ -6,7 +6,7 @@ library(dplyr)
 
 
 # reading in csv files
-OS384_cis_atr <- read.csv("~/Desktop/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_cis_atr - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", header = F)
+OS384_cis_atr <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_cis_atr - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", header = F)
 
 
 # renaming the row names
@@ -54,13 +54,7 @@ dose_response <- data.frame(
 )
 
 
-# plotting the dose response curve with the dose (x-axis) on a log scale
-ggplot(
-  data = dose_response, aes(x = conc, y = cell_count)) +
-  geom_point() +
-  geom_line() +
-  labs(x = "Drug Concentration", y = "Cell Count") +
-  ylim(0, NA) + scale_x_continuous(trans = "log10")
+
 
 
 # fitting a dose-response curve
@@ -114,7 +108,7 @@ IC50_curve_384_ATR <- ggplot(IC50_curve_384_ATR, aes(x = conc, y = predictions))
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/ATR_IC50_OS384.svg", plot = IC50_curve_384_ATR, device = "svg")
+ggsave("~/Desktop/ATR_IC50_OS384.svg", plot = IC50_curve_384_ATR, device = "svg", width = 4, height = 3)
 
 
 ####### cis #######
