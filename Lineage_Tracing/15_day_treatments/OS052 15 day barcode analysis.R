@@ -9,15 +9,11 @@ library(tidyverse)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
-#install.packages("DescTools")
-library(DescTools)
+#library(DescTools)
 library(stringdist)
 library(ggplot2)
 library(grid)
 library(png)
-if (!require("remotes")) install.packages("remotes")
-remotes::install_github("AndriSignorell/DescTools")
-
 
 
 
@@ -57,20 +53,20 @@ names(OS052_ctrl13_scaled)[5:7] <- c("barcode_count_ctrl_13_1_scaled",
 
 
 # Computing logs of cpm values
-OS384ctrl13_log_scaled <- OS052_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
+OS052ctrl13_log_scaled <- OS052_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
+OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
+OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
 
 
 # Computing the mean per barcode for the merged dataframe
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% 
+OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% 
   mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
                                                          "barcode_count_ctrl_13_2_log", 
                                                          "barcode_count_ctrl_13_3_log"))))
 
 
 # Computing the mean cpm per barcode for the merged dataframe
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% 
+OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% 
   mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
                                                         "barcode_count_ctrl_13_2_scaled", 
                                                         "barcode_count_ctrl_13_3_scaled"))))
@@ -79,7 +75,7 @@ OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>%
 
 
 # Perform regression analysis
-model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS384ctrl13_log_scaled)
+model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS052ctrl13_log_scaled)
 
 
 # Extract r-squared value
@@ -87,7 +83,7 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot
-OS384_D13_replicate <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
+OS384_D13_replicate <- ggplot(OS052ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
   geom_point() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -222,6 +218,7 @@ OS384_atr_final <- test_sample
 
 # Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
 OS384_atr_final <- merge(OS384_atr_final, OS052ctrl0_filtered, by = "barcode")
+
 
 ## General QC
 
@@ -579,28 +576,6 @@ OS384_logReg_df <- rbind(OS384_cis_logReg, OS384_ctrl13_logReg)
 
 
 
-# depleted barcodes based on the z-scores of the log2 difference
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis > 1.8)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf > 1.8)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr > 1.8)
-
-
-# enriched barcodes
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis < -2)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf < -2)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr < -2)
-
-
-# filtering based on log fold change to identify positive fold change
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(logFC > 1 & p_value < 0.05)
-
-
-# Making a vector of the top dropout barcodes for all the treatments
-cis_barcodes <- z_score_diff_filtered_cis$barcode
-pf_barcodes <- z_score_diff_filtered_pf$barcode
-atr_barcodes <- z_score_diff_filtered_atr$barcode
 
 
 # Concatenating the barcode lists and keeping the unique barcodes
@@ -697,8 +672,6 @@ venn.diagram(
 
 
 
-
-
 # carrying out hypergeometric test for overlapping barcodes of all drugs
 1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
 
@@ -737,7 +710,7 @@ ggplot(dropout_barcodes_pivot, aes(x = value)) +
   scale_x_continuous(trans='log10')
 
 
-# creatina a list of the comparisons
+# creating a list of the comparisons
 my_comparisons <- list( c("diference_atr, diference_cis"), c("diference_atr, diference_dox"), c("diference_atr, diference_pf") )
 
 
@@ -765,7 +738,9 @@ ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) +
 diff_only <- difference_4_drugs[,-1]
 
 
-######    summarizing barcode stats    ######
+
+######    SUMMARIZING BARCODE STATS    ######
+
 
 
 # summarizing the mean of the barcodes for all conditions

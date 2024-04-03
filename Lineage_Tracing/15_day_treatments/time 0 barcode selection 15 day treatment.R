@@ -338,15 +338,17 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_3_log"))))
 
 
-# Computing the mean log value per barcode for the merged dataframe
+# Computing the mean of the cpm scaled values
 OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% 
   mutate(barcode_cpm_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled", 
                                                         "barcode_count_ctrl_0_2_scaled", 
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
 
+OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled[order(-OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
 
 OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
+
 
 # Use ggplot to create the plot
 ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
@@ -387,7 +389,7 @@ first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_lo
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   xlab("Log Transformed Barcode Count - Replicate 1") +
   ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 Barcode Count Correlation") +
+  ggtitle("OS052 Barcode Count Correlation") +
   geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
             y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
             label = paste("R-squared =", round(r_squared, 2)),
@@ -404,12 +406,12 @@ OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
-
-
-# Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_052_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
-
-
+ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
+       plot = first_two_replicates_052_D0, 
+       device = "svg", 
+       width = 4,  # Width in inches
+       height = 4, # Height in inches
+       dpi = 300)  # DPI, optional for SVG
 
 ###   Filtering barcodes for trajectory visualization   ###
 
