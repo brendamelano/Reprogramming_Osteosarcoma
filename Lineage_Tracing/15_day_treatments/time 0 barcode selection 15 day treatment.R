@@ -14,9 +14,9 @@ library(bioseq)
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/10_384_ctrl0_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/11_384_ctrl0_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/12_384_ctrl0_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/10_384_ctrl0_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/11_384_ctrl0_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/12_384_ctrl0_3.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -70,12 +70,32 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_3_log"))))
 
 
-# plotting the ordered counts to identify the elbow
-#plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y')
 
 
-plot(OS384ctrl0_merged$barcode_mean_ctrl_0, log = 'y', xlim = c(25, 250), ylim = c(20,500))
+# Computing the mean of the cpm scaled values
+OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
+  mutate(barcode_cpm_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled", 
+                                                        "barcode_count_ctrl_0_2_scaled", 
+                                                        "barcode_count_ctrl_0_3_scaled"))))
 
+
+OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled[order(-OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
+
+OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
+
+
+# Use ggplot to create the plot
+p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  geom_point() + # Add points
+  scale_y_log10() + # Log scale for Y axis
+  #geom_vline(xintercept = 988, color = "red") + 
+  labs(title = "OS384 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+        panel.grid.minor = element_blank()) # Remove minor grid lines
+
+ggsave("~/Desktop/OS384_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
 # counts in order
@@ -159,9 +179,9 @@ seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/1_742_ctrl0_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/2__742_ctrl0_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/3__742_ctrl0_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/1_742_ctrl0_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/2__742_ctrl0_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/3__742_ctrl0_3.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -210,17 +230,24 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
 
 
 
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
-  arrange(desc(barcode_cpm_mean_ctrl_0))
+OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled[order(-OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
+
+OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# plotting the ordered counts to identify the elbow
-plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y')
-abline(v = 2, col = "red")
+# Use ggplot to create the plot
+p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  geom_point() + # Add points
+  scale_y_log10() + # Log scale for Y axis
+  #geom_vline(xintercept = 988, color = "red") + 
+  labs(title = "OS742 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+        panel.grid.minor = element_blank()) # Remove minor grid lines
 
+ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
 
-plot(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0, log = 'y', xlim = c(0, 250), ylim = c(20,500))
-abline(v = 2, col = "red")
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
@@ -258,7 +285,7 @@ first_two_replicates_384_D0 <- ggplot(OS384ctrl0_log_scaled, aes(barcode_count_c
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_384_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
+ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
 
 
 
