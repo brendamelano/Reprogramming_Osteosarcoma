@@ -22,9 +22,9 @@ library(png)
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/4__742_ctrl13_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/5_742_ctrl13_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/6_742_ctrl13_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/4__742_ctrl13_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/5_742_ctrl13_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/6_742_ctrl13_3.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -70,25 +70,27 @@ OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>%
 
 
 # Perform regression analysis
-# model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS742_ctrl13_scaled)
-# 
-# 
-# # Extract r-squared value
-# r_squared <- summary(model)$r.squared
-# 
-# 
-# # Create the ggplot
-# OS742_D13_replicate <- ggplot(OS742_ctrl13_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-#   geom_point() +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS384 Barcode Count Correlation") +
-#   geom_text(x = min(OS742_ctrl13_scaled$barcode_count_ctrl_13_3_log),
-#             y = max(OS742_ctrl13_scaled$barcode_count_ctrl_13_2_log),
-#             label = paste("R-squared =", round(r_squared, 2), "\n"),
-#             hjust = 0, vjust = 1, parse = TRUE)
+model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS742_ctrl13_scaled)
+
+
+# Extract r-squared value
+r_squared <- summary(model)$r.squared
+
+
+# Create the ggplot
+OS742_D13_replicate <- ggplot(OS742_ctrl13_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
+  geom_point() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Log Barcode Count - Replicate 1") +
+  ylab("Log Barcode Count - Replicate 2") +
+  ggtitle("OS742 Barcode Count Correlation") +
+  geom_text(x = min(OS742_ctrl13_scaled$barcode_count_ctrl_13_3_log),
+            y = max(OS742_ctrl13_scaled$barcode_count_ctrl_13_2_log),
+            label = paste("R-squared =", round(r_squared, 2), "\n"),
+            hjust = 0, vjust = 1, parse = TRUE)
+
+ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = OS742_D13_replicate, device = "svg", width = 4, height = 4, units = "in")
 
 
 #
@@ -134,9 +136,9 @@ OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>%
 
 
 # Reading in the PF barcodes
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/7_742_pf_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/8_742_pf_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/9_742_pf_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/7_742_pf_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/8_742_pf_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/9_742_pf_3.fastq.gz.out2.txt')
 
 
 # Combining all of the barcode dataframes
@@ -189,6 +191,35 @@ test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 OS742_pf_final <- test_sample
 
 
+## PLOTTING THE REPLICATES
+
+
+# Perform regression analysis
+model <- lm(barcode_count_pf_1_log ~ barcode_count_pf_2_log, data = OS742_pf_final)
+
+
+# Extract r-squared value
+r_squared <- summary(model)$r.squared
+
+
+# Create the ggplot
+OS742_pf_replicate <- ggplot(OS742_pf_final, aes(barcode_count_pf_1_log, barcode_count_pf_2_log)) +
+  geom_point() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Log Barcode Count - Replicate 1") +
+  ylab("Log Barcode Count - Replicate 2") +
+  geom_hex() +
+  ggtitle("OS742 CDK 4/6 Barcode Count Correlation") +
+  geom_text(x = min(OS742_pf_final$barcode_count_pf_1_log),
+            y = max(OS742_pf_final$barcode_count_pf_2_log),
+            label = paste("R-squared =", round(r_squared, 2), "\n"),
+            hjust = 0, vjust = 1, parse = TRUE)
+
+ggsave("~/Desktop/OS742_pf_correlation.svg", plot = OS742_pf_replicate, device = "svg", width = 3, height = 3, units = "in")
+
+
+
 ## running the function
 
 #test_sample <- OS384_pf
@@ -229,23 +260,6 @@ OS742_pf_final <- test_sample
 #   ggtitle('Barcode selection with CDK 4/6 inhibitor')
 
 
-# filtering the z-scores to keep the top dropouts
-# 
-# z_score_diff_filtered_pf <- pf_diff_ordered %>% filter(log2_diff_zscore_pf > 1)
-# 
-# 
-# # pivoting the the z-score table
-# 
-# z_scores_pivot <- z_score_diff_filtered_pf %>%
-#   pivot_longer(colnames(z_score_diff_filtered_pf)[2:3]) %>%
-#   as.data.frame()
-
-
-# plotting the z-scores for the top barcode dropouts
-ggplot(z_scores_pivot, aes(x = name , y = value)) + 
-  geom_boxplot() +
-  #scale_y_continuous(trans='log10')  +
-  stat_compare_means()
 
 
 # merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
@@ -268,31 +282,6 @@ ggplot(pf_diff_ordered, aes(x = barcode_count_ctrl_0.y , y = log2_diff_zscore_pf
 
 
 
-# depleted barcodes based on the z-scores of the log2 difference
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis > 1.8)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf > 1.8)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr > 1.8)
-
-
-# enriched barcodes
-z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis < -2)
-z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf < -2)
-z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr < -2)
-
-
-
-# making a vector of the top dropout barcodes for all the treatments
-cis_barcodes <- z_score_diff_filtered_cis$barcode
-pf_barcodes <- z_score_diff_filtered_pf$barcode
-atr_barcodes <- z_score_diff_filtered_atr$barcode
-
-
-# concatenating the barcode lists and keeping the unique barcodes
-deplted_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
-
-
-# changing the barcode type to DNA in order to later take the reverse complement
-deplted_barcodes <- dna(deplted_barcodes)
 
 
 # getting the reverse complement of the top barcodes

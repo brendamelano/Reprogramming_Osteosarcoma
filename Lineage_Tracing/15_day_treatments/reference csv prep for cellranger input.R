@@ -1,10 +1,14 @@
 
+
+
 # reading in sample csv
-sample_csv <- read.csv('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/LT_whitelist_barcodes_052_inVivo - LT_whitelist_barcodes_052_inVivo.csv')
+sample_csv <- read.csv('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/LT_whitelist_barcodes_sample - LT_whitelist_barcodes_052_inVivo.csv')
 
 
 # taking the reverse complement of the white list barcodes
 OS052_time_0_barcodes_rc <- dna(OS052_time_0_barcodes)
+
+# Taking the reverse compliment of the time 0 barcodes
 OS052_time_0_barcodes_rc <- seq_complement(seq_reverse(OS052_time_0_barcodes_rc))
 
 # Adding the t0 barcodes to the csv

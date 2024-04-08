@@ -246,6 +246,7 @@ p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) 
   theme(panel.grid.major = element_blank(), # Remove major grid lines
         panel.grid.minor = element_blank()) # Remove minor grid lines
 
+# Saving as svg
 ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
 
 
@@ -256,14 +257,14 @@ OS742ctrl0_filtered <- OS742ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 
 
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
-time_0_barcodes <- OS742ctrl0_filtered$barcode
+OS052_time_0_barcodes <- OS742ctrl0_filtered$barcode
 
 
 ## performing regression for r^2 value of replicates ##
 
 
 # Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS384ctrl0_log_scaled)
+model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS742ctrl0_filtered)
 
 
 # Extract r-squared and p-value
@@ -271,21 +272,22 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot for replicate correlation in D0 control
-first_two_replicates_384_D0 <- ggplot(OS384ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+first_two_replicates_742_D0 <- ggplot(OS742ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
   geom_point() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 Barcode Count Correlation") +
-  geom_text(x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-            y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+  xlab("Log Barcode Count - Replicate 1") +
+  ylab("Log Barcode Count - Replicate 2") +
+  ggtitle("OS742 Barcode Count Correlation") +
+  geom_text(x = min(OS742ctrl0_filtered$barcode_count_ctrl_0_1_log),
+            y = max(OS742ctrl0_filtered$barcode_count_ctrl_0_2_log),
             label = paste("R-squared =", round(r_squared, 2)),
             hjust = 0, vjust = 1, parse = TRUE)
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
+ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_742_D0, device = "svg", width = 4, height = 4, units = "in")
+
 
 
 
@@ -397,6 +399,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
 
 threshold <- 8000
 
+# Filtering based on the stdev threshhold
 filtered_df <- OS052ctrl0_log_scaled %>%
   filter(StdDev <= threshold)
 
