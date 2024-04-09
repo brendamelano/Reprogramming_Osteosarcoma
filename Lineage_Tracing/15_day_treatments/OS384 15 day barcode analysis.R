@@ -414,6 +414,7 @@ OS384_pf_log_scaled <- OS384_pf_log_scaled %>% mutate(barcode_count_pf_2_log = l
 OS384_pf_log_scaled <- OS384_pf_log_scaled %>% mutate(barcode_count_pf_3_log = log2(barcode_count_384_pf_3))
 
 
+
 # Computing the mean per barcode for the merged dataframe
 # Make sure that this does not have to be the mean
 OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
