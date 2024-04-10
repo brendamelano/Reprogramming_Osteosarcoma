@@ -433,6 +433,13 @@ filtered_df <- OS052ctrl0_log_scaled %>%
 # 
 # first_two_replicates_052_D0
 
+# ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
+#        plot = first_two_replicates_052_D0, 
+#        device = "svg", 
+#        width = 4,  # Width in inches
+#        height = 4, # Height in inches
+#        dpi = 300)  # DPI, optional for SVG
+
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 
@@ -441,12 +448,7 @@ OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
-ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
-       plot = first_two_replicates_052_D0, 
-       device = "svg", 
-       width = 4,  # Width in inches
-       height = 4, # Height in inches
-       dpi = 300)  # DPI, optional for SVG
+
 
 
 ###   Filtering barcodes for trajectory visualization   ###
