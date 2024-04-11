@@ -35,6 +35,56 @@ result_list <- lapply(file_paths, process_file)
 # Merging the data frames by 'V1'
 OS052_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
+# Renaming the first column to barcode
+names(OS052_ctrl_13_merged)[1] <- 'barcode'
+
+
+# Creating a dataframe for the barcodes not in the white list
+OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+
+
+
+###### Reading in samples
+
+
+# Reading in the ATR gDNA barcodes
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_1_S34_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_2_S35_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_3_S36_L003_R1_001.fastq.gz.out2.txt')
+
+
+# Applying the process file function to the file paths
+result_list <- lapply(file_paths, process_file)
+
+
+# Merging the data frames by 'V1'
+OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
+
+
+# Renaming the first column to barcode
+names(OS052_atr_merged)[1] <- 'barcode'
+
+
+## hamming distance section ##
+
+
+# Creating a dataframe for the barcodes not in the white list
+test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
+test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+
+# Resetting the test sample to a OS052 name
+OS052_atr_merged <- test_sample
+
+merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'barcode'))
+merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
+
+##########
+
+
+
+
+# Creating a dataframe for the barcodes not in the white list
+OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 # Performing cpm scaling with the function
 OS052_ctrl13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
@@ -138,30 +188,13 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 
-# Reading in the ATR gDNA barcodes
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_1_S34_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_2_S35_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_3_S36_L003_R1_001.fastq.gz.out2.txt')
-
-
-# Applying the process file function to the file paths
-result_list <- lapply(file_paths, process_file)
-
-
-# Merging the data frames by 'V1'
-OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
-
-
-# Renaming the first column to barcode
-names(OS052_atr_merged)[1] <- 'barcode'
-
 
 ## hamming distance section ##
 
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% merged_atr_barcodes))
+test_sample <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 
 # Writing a for loop to add values from the extra values to the whitelist
@@ -180,32 +213,39 @@ OS052_atr_merged <- test_sample
 
 
 # Performing cpm scaling with the function
-OS384_atr_scaled <- cpm_scaling(OS052_atr_merged)
+OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
 
 
 # Changing the column names for the scaled counts
-names(OS384_atr_scaled)[2:4] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
+names(OS052_atr_scaled)[2:4] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
 
 
 # Changing the column names for the scaled counts
-names(OS384_atr_scaled)[5:7] <- c("barcode_count_atr_1_scaled", "barcode_count_atr_2_scaled", "barcode_count_atr_3_scaled")
+names(OS052_atr_scaled)[5:7] <- c("barcode_count_atr_1_scaled", "barcode_count_atr_2_scaled", "barcode_count_atr_3_scaled")
 
 
 # Computing logs of cpm values
-OS384_atr_log_scaled <- OS384_atr_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
+OS052_atr_log_scaled <- OS052_atr_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
 
 
 # Computing the mean per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr = rowMeans(select(., c("barcode_count_atr_1_log", 
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% 
+  mutate(barcode_log_mean_atr = rowMeans(select(., c("barcode_count_atr_1_log", 
                                                  "barcode_count_atr_2_log", 
                                                  "barcode_count_atr_3_log"))))
 
 
+# Computing the mean per barcode for the merged dataframe
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% 
+  mutate(barcode_cpm_mean_atr = rowMeans(select(., c("barcode_count_atr_1_scaled", 
+                                                     "barcode_count_atr_2_scaled", 
+                                                     "barcode_count_atr_3_scaled"))))
+
+
 # Filtering out the barcodes based on T0 barcodes
-test_sample <- OS384_atr_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
+test_sample <- OS052_atr_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
 ctrl_sample <- OS052ctrl13_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
 
 
@@ -214,50 +254,42 @@ test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 
 
 # reassigning the test sample
-OS384_atr_final <- test_sample
+OS052_atr_final <- test_sample
 
 
 # Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-OS384_atr_final <- merge(OS384_atr_final, OS052ctrl0_filtered, by = "barcode")
+OS052_atr_final <- merge(OS052_atr_final, OS052ctrl0_filtered, by = "barcode")
 
-
-
-
-
-###
-
-# Running the function
-
-#OS384_atr_final <- test_barcode_analysis(test_sample = OS384_atr, time_0_barcodes, ctrl_sample = OS384ctrl_6_final)
 
 
 
 
 ### PLOTTING THE REPLICATES
+
 # Perform regression analysis
-model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 ATR Barcode Count Correlation") +
-  geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-            y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
+# model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+#   xlab("Log Transformed Barcode Count - Replicate 1") +
+#   ylab("Log Transformed Barcode Count - Replicate 2") +
+#   ggtitle("OS384 ATR Barcode Count Correlation") +
+#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
+#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
+#             label = paste("R-squared =", round(r_squared, 2), "\n"),
+#             hjust = 0, vjust = 1, parse = TRUE)
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
+#ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
 
 
 LT_depleted_cluster_3 <- read.csv('~/Desktop/LT_depleted_cluster_3.csv')
@@ -278,6 +310,7 @@ ggplot(filtered_data, aes(x = barcode)) +
        y = "Count",
        color = "Condition") +
   theme_minimal()
+
 
 
 ## General QC
@@ -512,8 +545,6 @@ deplted_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
 
 # changing the barcode type to DNA in order to later take the reverse complement
 deplted_barcodes <- dna(deplted_barcodes)
-
-
 
 
 

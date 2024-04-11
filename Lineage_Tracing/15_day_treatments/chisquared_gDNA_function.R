@@ -193,8 +193,9 @@ write.csv(rc_enriched_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day
 ######     OS052    ########
 
 
-
+# function for performing chi-squared analysis
 perform_chi_squared_analysis <- function(data, drug, barcode_colname, test_colnames, ctrl_colnames) {
+  
   # Initialize an empty data frame to store results
   p_values <- data.frame(barcode = character(), p_value = numeric())
   
@@ -227,46 +228,41 @@ perform_chi_squared_analysis <- function(data, drug, barcode_colname, test_colna
 
 
 atr_p_values <- perform_chi_squared_analysis(
-  data = atr_diff_merged,
+  data = OS052_atr_final,
   drug = "atr",
   barcode_colname = "barcode",
-  test_colnames = c("barcode_count__atr_1_S34_L003_R1_001.x", "barcode_count__atr_2_S35_L003_R1_001.x", "barcode_count__atr_3_S36_L003_R1_001.x"),
+  test_colnames = c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3"),
   ctrl_colnames = c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 )
 
 
-
 # reassigned this to cis_diff_merged in the forloop above
-OS742_pf_final <- merge(atr_diff_merged, atr_p_values, by = 'barcode')
+OS052_atr_final <- merge(OS052_atr_final, atr_p_values, by = 'barcode')
 
 
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
-OS742_pf_final$logFC <- log2(OS742_pf_final$barcode_mean_atr_cpm / OS742_pf_final$barcode_mean_ctrl13_cpm)
+OS052_atr_final$logFC <- log2(OS052_atr_final$barcode_cpm_mean_atr / OS052_atr_final$barcode_mean_ctrl13_cpm)
 
 
 # Set significance level and fold change cutoffs
-
 sig_level <- 0.05
 fc_cutoff <- 1
 
 
 # Create the volcano plot
-ggplot(OS742_pf_final, aes(x=logFC, y=-log10(p_value))) +
+ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS742 CDK 4/6 inhibitor Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS052 ATR inhibitor Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),  # Remove major gridlines
         panel.grid.minor = element_blank()) +
-  ylim(0, 8) +
+  #ylim(0, 8) +
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  xlim(-2.5, 2.5)
+  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray")# +
+  #xlim(-2.5, 2.5)
 
-
-
-# You can call this function for different drugs by specifying the appropriate parameters.
 
 
 

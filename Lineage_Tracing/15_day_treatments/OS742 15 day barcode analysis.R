@@ -35,6 +35,10 @@ result_list <- lapply(file_paths, process_file)
 OS742_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
+# Creating a dataframe for the barcodes not in the white list
+test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
+test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+
 # Performing cpm scaling with the function
 OS742_ctrl13_scaled <- cpm_scaling(OS742_ctrl_13_merged)
 
