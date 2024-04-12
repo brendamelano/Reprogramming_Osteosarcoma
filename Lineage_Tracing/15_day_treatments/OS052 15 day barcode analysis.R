@@ -69,17 +69,20 @@ names(OS052_atr_merged)[1] <- 'barcode'
 
 
 # Creating a dataframe for the barcodes not in the white list
+# extra df is for hamming distance
 test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
 test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+
 
 # Resetting the test sample to a OS052 name
 OS052_atr_merged <- test_sample
 
+# Getting a new list of barcodes with which to filter the dataframes
 merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'barcode'))
 merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
 
-##########
 
+##########
 
 
 

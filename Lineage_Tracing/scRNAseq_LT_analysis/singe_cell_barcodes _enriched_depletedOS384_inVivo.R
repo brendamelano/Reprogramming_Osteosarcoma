@@ -3,13 +3,14 @@ library(tidyverse)
 library(bioseq)
 library(dplyr)
 
+
 ##### OS384   #########
 
 
 #####   Depleted barcodes   ##########
 
 
-# reading in combined and trimmed fastq sequences
+# Reading in combined and trimmed fastq sequences
 Fastq_sequences <- read.delim("~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/OS384_in_vivo_LT_barcodes.txt", header = F)
 
 
@@ -349,5 +350,36 @@ df_sequences <- df_sequences %>%
 final_df <- tenX_cell_barcodes %>%
   left_join(df_sequences, by = "V1") 
 
+
+
+##### OS052   #########
+
+
+#####   Depleted barcodes   ##########
+
+
+# Reading in combined and trimmed fastq sequences
+Fastq_sequences <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_LT_barcode_combined_sequences.txt", header = F)
+
+
+# reading in the depleted LT barcode sequences
+depleted_barcodes <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.csv")
+depleted_barcodes <- depleted_barcodes[,2]
+
+
+# filtering the fastq sequences based on the depleted barcode sequences
+filtered_fastqs <- dplyr::filter(Fastq_sequences, grepl(paste(depleted_barcodes, collapse="|"), V1))
+
+
+# Getting the cell barcode sequences for the fastq sequences that remained (first 16 bases)
+cell_barcodes <- substr(filtered_fastqs$V1, 1, 16)
+
+
+# Adding the "-1" to the barcode sequences
+cell_barcodes <- paste(cell_barcodes, "-1", sep = "")
+
+
+# writing out the csv to upload into r on desktop
+write.csv(cell_barcodes, "~/Desktop/depleted_cell_barcodesOS052_inVivo.csv")
 
 

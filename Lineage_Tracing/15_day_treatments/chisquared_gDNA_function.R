@@ -8,6 +8,7 @@
 # Initialize empty dataframe to store results
 p_values <- data.frame(barcode = character(), p_value = numeric())
 
+
 # need to repaste the figure since I changed the ctrl and test total values for chisquared analysis
 # loop through unique barcode ids
 for (barcode_id in unique(cis_diff_merged$barcode)) {
@@ -171,8 +172,10 @@ enriched_barcodes <- enriched_filtered_pf$barcode
 # changing the barcode type to DNA in order to later take the reverse complement
 depleted_barcodes <- dna(depleted_barcodes)
 
+
 # getting the reverse complement of the top barcodes
 rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+
 
 # Creating a dataframe of the depleted barcodes
 rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
@@ -190,7 +193,9 @@ rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
 write.csv(rc_enriched_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/enriched_barcodes_OS742_inVivo_LT.csv")
 
 
+
 ######     OS052    ########
+
 
 
 # function for performing chi-squared analysis
@@ -264,6 +269,30 @@ ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
   #xlim(-2.5, 2.5)
 
 
+
+# Identifying the depleted and enriched barcodes
+# filtering based on log fold change to identify positive fold change
+depleted_filtered_atr <- OS052_atr_final %>% filter(logFC < -1 & p_value < 0.05)
+
+
+# making a vector of the top dropout barcodes for all the treatments
+depleted_barcodes <- depleted_filtered_atr$barcode
+enriched_barcodes <- depleted_filtered_atr$barcode
+
+
+# changing the barcode type to DNA in order to later take the reverse complement
+depleted_barcodes <- dna(depleted_barcodes)
+
+
+# getting the reverse complement of the top barcodes
+rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+
+
+# Creating a dataframe of the depleted barcodes
+rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
+
+# Writing the dropout barcodes to the single cell analysis folder
+write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.csv")
 
 
 
