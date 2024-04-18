@@ -277,19 +277,21 @@ depleted_filtered_atr <- OS052_atr_final %>% filter(logFC < -1 & p_value < 0.05)
 
 # making a vector of the top dropout barcodes for all the treatments
 depleted_barcodes <- depleted_filtered_atr$barcode
-enriched_barcodes <- depleted_filtered_atr$barcode
+#enriched_barcodes <- depleted_filtered_atr$barcode
 
 
 # changing the barcode type to DNA in order to later take the reverse complement
 depleted_barcodes <- dna(depleted_barcodes)
 
+rc_depleted_barcodes <- depleted_barcodes
 
 # getting the reverse complement of the top barcodes
-rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+#rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
 
 
 # Creating a dataframe of the depleted barcodes
 rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
+
 
 # Writing the dropout barcodes to the single cell analysis folder
 write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.csv")

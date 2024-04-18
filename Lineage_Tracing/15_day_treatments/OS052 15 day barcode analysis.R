@@ -17,7 +17,6 @@ library(png)
 
 
 
-
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
 
 
@@ -65,9 +64,6 @@ OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 names(OS052_atr_merged)[1] <- 'barcode'
 
 
-## hamming distance section ##
-
-
 # Creating a dataframe for the barcodes not in the white list
 # extra df is for hamming distance
 test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
@@ -82,12 +78,14 @@ merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'b
 merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
 
 
+
 ##########
 
 
 
 # Creating a dataframe for the barcodes not in the white list
 OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr_barcodes))
+
 
 # Performing cpm scaling with the function
 OS052_ctrl13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
@@ -109,6 +107,7 @@ names(OS052_ctrl13_scaled)[5:7] <- c("barcode_count_ctrl_13_1_scaled",
 OS052ctrl13_log_scaled <- OS052_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
+
 
 
 # Computing the mean per barcode for the merged dataframe
@@ -191,7 +190,6 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 
-
 ## hamming distance section ##
 
 
@@ -210,6 +208,7 @@ test_sample <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
 #     }
 #   }
 # }
+
 
 # Resetting the test sample to a OS052 name
 OS052_atr_merged <- test_sample
@@ -364,9 +363,12 @@ OS052_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 colnames(OS052_pf_merged)[1] <- "barcode"
 
 
+# Creating a dataframe for the barcodes not in the white list
+OS052_pf_merged <- OS052_pf_merged %>% filter((barcode %in% merged_atr_barcodes))
+
+
 # Scaling the data based on cpm
 OS052_pf_scaled <- cpm_scaling(OS052_pf_merged)
-
 
 
 # Renaming the count columns
