@@ -5,11 +5,12 @@ library(magrittr)
 library(dplyr)
 
 
-# reading in csv files
-OS384_cis_atr <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_cis_atr - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", header = F)
+# Reading in csv files
+OS384_cis_atr <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_cis_atr - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", 
+                          header = F)
 
 
-# renaming the row names
+# Renaming the row names
 rownames(OS384_cis_atr)[1] <- "Cis_1"
 rownames(OS384_cis_atr)[2] <- "Cis_2"
 rownames(OS384_cis_atr)[3] <- "Cis_3"
@@ -19,17 +20,17 @@ rownames(OS384_cis_atr)[5] <- "Atr_2"
 rownames(OS384_cis_atr)[6] <- "Atr_3"
 
 
-# making a dataframe for the ATR experiment
+# Making a dataframe for the ATR and CIS experiment
 OS384_cis <-OS384_cis_atr[1:3,]
 
 OS384_atr <-OS384_cis_atr[4:6,]
 
 
 
-###  ATR analysis    ###
+###  ATR analysis    #####
 
 
-# computing the mean of the triplicates
+# Computing the mean of the triplicates
 OS384_atr <- rbind(OS384_atr, OS384_atr %>% summarise_if(is.numeric, mean))
 
 
@@ -54,10 +55,7 @@ dose_response <- data.frame(
 )
 
 
-
-
-
-# fitting a dose-response curve
+# Fitting a dose-response curve
 curved_fit <- drm(
   formula = cell_count ~ conc,
   data = dose_response,
@@ -88,30 +86,35 @@ ic_50 <- with(
 ic_50
 
 
-
 # Note the logged x-axis
-# This also actually creates a dataframe that can be used to plot the same data in ggplot2
-IC50_curve_384_ATR <- plot(curved_fit, main = "OS384 ATR inhibitor IC50", xlab = "Concentration (uM)", 
-     ylab = "Fluorescent Intensity", digits = 3)
+# Note the logged x-axis
+IC50_curve_384_ATR <- plot(curved_fit, 
+                           main = "OS384 ATR IC50", 
+                           xlab = "Concentration (uM)", 
+                           ylab = "Fluorescent Intensity", 
+                           digits = 3)
 
 
 # changing the name of the 2nd column to predictions
 names(IC50_curve_384_ATR)[2] <- 'predictions'
 
 
-# plotting the dos response curve with ggplot2
 IC50_curve_384_ATR <- ggplot(IC50_curve_384_ATR, aes(x = conc, y = predictions)) +
   geom_line() +  # Add a line plot
   scale_x_log10() +  # Set the x-axis to a logarithmic scale
   labs(title = "OS384 ATR inhibitor IC50", x = "Concentration (uM)", y = "Fluorescent Intensity") +
-  theme_bw()
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        text = element_text(size = 11),
+        plot.title = element_text(size = 10.5))  # Change size of title
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/ATR_IC50_OS384.svg", plot = IC50_curve_384_ATR, device = "svg", width = 4, height = 3)
+ggsave("~/Desktop/ATR_IC50_OS384.svg", plot = IC50_curve_384_ATR, device = "svg", width = 2.5, height = 2.5)
 
 
-####### cis #######
+
+#######     CIS     #######
 
 
 OS384_cis <- rbind(OS384_cis, OS384_cis %>% summarise_if(is.numeric, mean))
