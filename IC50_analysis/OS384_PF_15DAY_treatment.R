@@ -6,8 +6,7 @@ library(dplyr)
 
 
 # reading in csv files
-# removed the first column
-OS384_pf <- read.csv("~/Desktop/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_pf - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", header = F)
+OS384_pf <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/384_15day_pf - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", header = F)
 
 
 # renaming the row names
@@ -91,9 +90,12 @@ names(IC50_curve_384_CDK4_6)[2] <- 'predictions'
 IC50_curve_384_CDK4_6_gg <- ggplot(IC50_curve_384_CDK4_6, aes(x = conc, y = predictions)) +
   geom_line() +  # Add a line plot
   scale_x_log10() +  # Set the x-axis to a logarithmic scale
-  labs( x = "CDK 4/6 Concentration (uM)", y = "OS384 Fluorescent Intensity") +
-  theme_bw()
+  labs(title = "OS384 CDK 4/6 inhibitor IC50", x = "Concentration (uM)", y = "Fluorescent Intensity") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10))  # Change size of title
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/PF_IC50_OS384.svg", plot = IC50_curve_384_CDK4_6_gg, device = "svg")
+ggsave("~/Desktop/PF_IC50_OS384.svg", plot = IC50_curve_384_CDK4_6_gg, device = "svg", width = 2.5, height = 2.5)
