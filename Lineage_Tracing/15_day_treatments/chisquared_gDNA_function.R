@@ -9,50 +9,25 @@
 p_values <- data.frame(barcode = character(), p_value = numeric())
 
 
-# need to repaste the figure since I changed the ctrl and test total values for chisquared analysis
-# loop through unique barcode ids
-for (barcode_id in unique(cis_diff_merged$barcode)) {
-  
-  # extract counts for test and control groups
-  barcode_test <- sum(cis_diff_merged$barcode_count_cis_1[cis_diff_merged$barcode == barcode_id],
-                      cis_diff_merged$barcode_count_cis_2[cis_diff_merged$barcode == barcode_id],
-                      cis_diff_merged$barcode_count_cis_3[cis_diff_merged$barcode == barcode_id])
-  
-  barcode_ctrl <- sum(cis_diff_merged$barcode_count_ctrl_13_1[cis_diff_merged$barcode == barcode_id],
-                      cis_diff_merged$barcode_count_ctrl_13_2[cis_diff_merged$barcode == barcode_id],
-                      cis_diff_merged$barcode_count_ctrl_13_3[cis_diff_merged$barcode == barcode_id])
-  
-  ctrl_total <- sum(cis_diff_merged$barcode_count_ctrl_13_1[cis_diff_merged$barcode != barcode_id],
-                    cis_diff_merged$barcode_count_ctrl_13_2[cis_diff_merged$barcode != barcode_id],
-                    cis_diff_merged$barcode_count_ctrl_13_3[cis_diff_merged$barcode != barcode_id])
-  
-  test_total <- sum(cis_diff_merged$barcode_count_cis_1[cis_diff_merged$barcode != barcode_id],
-                    cis_diff_merged$barcode_count_cis_1[cis_diff_merged$barcode != barcode_id],
-                    cis_diff_merged$barcode_count_cis_1[cis_diff_merged$barcode != barcode_id])
-  
-  # create data frame for chi-squared test
-  counts_barcode <- c(barcode_ctrl, barcode_test)
-  counts_total <- c(ctrl_total, test_total)
-  barcode_df <- data.frame(counts_barcode, counts_total)
-  
-  
-  # perform chi-squared test and extract p-value
-  chi_sq <- chisq.test(barcode_df)$statistic
-  p_value <- pchisq(chi_sq, df = 1, lower.tail = FALSE)
-  
-  
-  # append barcode id and p-value to results dataframe
-  p_values <- rbind(p_values, data.frame(barcode = barcode_id, p_value = p_value))
-  
-}
+
+names(OS384_atr_log_scaled)
+
+# Define the column names
+barcode_col <- "barcode"
+test_cols <- c("barcode_count_384_atr_1", "barcode_count_384_atr_2", "barcode_count_384_atr_3")
+ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
-cis_diff_merged <- merge(cis_diff_merged, p_values, by = 'barcode')
+# Compute chi-squared tests
+p_values_df <- compute_chisq_test(OS384_atr_log_scaled, barcode_col, test_cols, ctrl_cols)
+
+
+OS384_atr_log_scaled <- merge(OS384_atr_log_scaled, p_values_df, by = 'barcode')
 
 
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
-cis_diff_merged$logFC <- log2(cis_diff_merged$barcode_mean_cis_cpm / cis_diff_merged$barcode_mean_ctrl13_cpm)
+OS384_atr_log_scaled$logFC <- log2(OS384_atr_log_scaled$barcode_mean_atr_cpm / OS384_atr_log_scaled$barcode_mean_ctrl13_cpm)
 
 # cis_diff_merged$logFC <- log2(cis_diff_merged$barcode_log_mean_cis / cis_diff_merged$barcode_log_mean_ctrl13)
 
@@ -62,10 +37,10 @@ fc_cutoff <- 1
 
 
 # Create the volcano plot
-ggplot(cis_diff_merged, aes(x=logFC, y=-log10(p_value))) +
+ggplot(OS384_atr_log_scaled, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 Cisplatin Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 Atr Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),  # Remove major gridlines
         panel.grid.minor = element_blank()) +
@@ -74,6 +49,28 @@ ggplot(cis_diff_merged, aes(x=logFC, y=-log10(p_value))) +
 
 
 
+# Identifying the depleted and enriched barcodes
+# filtering based on log fold change to identify positive fold change
+depleted_filtered_atr <- OS384_atr_log_scaled %>% filter(logFC < -1 & p_value < 0.05)
+
+
+# making a vector of the top dropout barcodes for all the treatments
+depleted_barcodes <- depleted_filtered_atr$barcode
+
+
+# changing the barcode type to DNA in order to later take the reverse complement
+depleted_barcodes <- dna(depleted_barcodes)
+
+# getting the reverse complement of the top barcodes
+rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+
+
+# Creating a dataframe of the depleted barcodes
+rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
+
+
+# Writing the dropout barcodes to the single cell analysis folder
+write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_atr_depleted_barcodes_LT.csv")
 
 
 ########    OS742     ##############

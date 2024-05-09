@@ -53,7 +53,7 @@ for (i in 2:ncol(df)) {
 names(df)[2:4] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
 
 
-# merging the counts with the scaled counts
+# Merging the counts with the scaled counts
 OS384ctrl0_merged <- merge(OS384_ctrl_0_merged, df, by = "V1")
 
   
@@ -70,37 +70,46 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_3_log"))))
 
 
-
-
 # Computing the mean of the cpm scaled values
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
   mutate(barcode_cpm_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled", 
                                                         "barcode_count_ctrl_0_2_scaled", 
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
-
+# Ordering based on cpm means
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled[order(-OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
 
 OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# Use ggplot to create the plot
-p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  geom_point() + # Add points
-  scale_y_log10() + # Log scale for Y axis
-  #geom_vline(xintercept = 988, color = "red") + 
-  labs(title = "OS384 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank()) # Remove minor grid lines
+# # Use ggplot to create the plot
+# p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   geom_point() + # Add points
+#   scale_y_log10() + # Log scale for Y axis
+#   labs(title = "OS384 LT Ranked Barcodes", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(
+#     panel.grid.major = element_blank(), # Remove major grid lines
+#     panel.grid.minor = element_blank(), # Remove minor grid lines
+#     plot.title = element_text(size = 9, face = "bold"), # Title font size
+#     axis.title.x = element_text(size = 8), # X-axis title font size
+#     axis.title.y = element_text(size = 8), # Y-axis title font size
+#     axis.text.x = element_text(size = 8), # X-axis tick label font size
+#     axis.text.y = element_text(size = 8) # Y-axis tick label font size
+#   )
+# 
+# 
+# # Saving svg file
+# ggsave("~/Desktop/OS384_ranked_barcode_LT.svg", plot = p, device = "svg", width = 2.2, height = 2.2, units = "in")
 
-ggsave("~/Desktop/OS384_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
 # counts in order
 OS384ctrl0_filtered <- OS384ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 > 2)
 
+
+# Renaming the barcode column
 names(OS384ctrl0_filtered)[1] <- "barcode"
 
 
@@ -109,11 +118,11 @@ time_0_barcodes <- OS384ctrl0_filtered$barcode
 
 
 # writing the csv to the single cell folder
-write.csv(time_0_barcodes, "~/Desktop/OS384_time0_barcodes.csv")
+#write.csv(time_0_barcodes, "~/Desktop/OS384_time0_barcodes.csv")
 
 
+### Performing regression for r^2 value of replicates ##
 
-## performing regression for r^2 value of replicates ##
 
 # Perform regression analysis
 model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS384ctrl0_log_scaled)
@@ -124,7 +133,6 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot for replicate correlation in D0 control
-
 first_two_replicates_384_D0 <- ggplot(OS384ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
   geom_point() +
   theme_bw() +
@@ -151,26 +159,24 @@ ggsave("~/Desktop/first_two_replicates_384_D0.svg", plot = first_two_replicates_
 
 
 # fitering the barcodes for those with a high count for trajectory analysis
-OS384_ctrl_0_trajectory <- OS384ctrl0_filtered %>% filter(barcode_mean_ctrl_0 > 10)
+# OS384_ctrl_0_trajectory <- OS384ctrl0_filtered %>% filter(barcode_mean_ctrl_0 > 10)
+# 
+# 
+# # converting the barcodes to dna object in order to get the reverse complement
+# OS384_barcodes_trajectory <- dna(OS384_ctrl_0_trajectory$barcode)
+# 
+# 
+# # getting the reverse complement of the top barcodes
+# rc_384_trajectory_barcodes <- seq_complement(seq_reverse(OS384_barcodes_trajectory))
+# 
+# 
+# # creating a dataframe of the reverse complement of the barcodes that should be used to study trajectories
+# OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
+# 
+# 
+# # writing the csv to the single cell folder
+# write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 
-
-# converting the barcodes to dna object in order to get the reverse complement
-OS384_barcodes_trajectory <- dna(OS384_ctrl_0_trajectory$barcode)
-
-
-# getting the reverse complement of the top barcodes
-rc_384_trajectory_barcodes <- seq_complement(seq_reverse(OS384_barcodes_trajectory))
-
-
-# creating a dataframe of the reverse complement of the barcodes that should be used to study trajectories
-OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
-
-
-# writing the csv to the single cell folder
-write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
-
-
-seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
 
 
 

@@ -1,3 +1,4 @@
+library(stringdist)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -9,16 +10,9 @@ library(tidyverse)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
-install.packages("DescTools")
-library(DescTools)
-library(stringdist)
-library(ggplot2)
 library(grid)
 library(png)
-if (!require("remotes")) install.packages("remotes")
-remotes::install_github("AndriSignorell/DescTools")
-
-
+library(DescTools)
 
 
 
@@ -27,9 +21,9 @@ remotes::install_github("AndriSignorell/DescTools")
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/13_384_ctrl13_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/14_384_ctrl13_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/15_384_ctrl13_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/13_384_ctrl13_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/14_384_ctrl13_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/15_384_ctrl13_3.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -40,72 +34,45 @@ result_list <- lapply(file_paths, process_file)
 OS384_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
-
-# Performing cpm scaling with the function
-OS384_ctrl13_scaled <- cpm_scaling(OS384_ctrl_13_merged)
+# Renaming the first column to barcode
+names(OS384_ctrl_13_merged)[1] <- 'barcode'
 
 
-# Changing the colun names for the scaled counts
-names(OS384_ctrl13_scaled)[2:4] <- c("barcode_count_ctrl_13_1", 
+# Changing the column names for the scaled counts
+names(OS384_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", 
                                      "barcode_count_ctrl_13_2", 
                                      "barcode_count_ctrl_13_3")
 
 
-# Changing the colun names for the scaled counts
-names(OS384_ctrl13_scaled)[5:7] <- c("barcode_count_ctrl_13_1_scaled", 
-                                     "barcode_count_ctrl_13_2_scaled", 
-                                     "barcode_count_ctrl_13_3_scaled")
 
-
-# Computing logs of cpm values
-OS384ctrl13_log_scaled <- OS384_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
-
-
-# Computing the mean per barcode for the merged dataframe
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% 
-  mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
-                                                         "barcode_count_ctrl_13_2_log", 
-                                                         "barcode_count_ctrl_13_3_log"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS384ctrl13_log_scaled <- OS384ctrl13_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
 
 ## PLOTTING THE REPLICATES
 
-
-# Perform regression analysis
-model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS384ctrl13_log_scaled)
-
-
-# Extract r-squared value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS384_D13_replicate <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 Barcode Count Correlation") +
-  geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-            y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
-
-
-# Save the plot as an SVG file
-ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device = "svg")
+# 
+# # Perform regression analysis
+# model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS384ctrl13_log_scaled)
+# 
+# 
+# # Extract r-squared value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS384_D13_replicate <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+#   xlab("Log Transformed Barcode Count - Replicate 1") +
+#   ylab("Log Transformed Barcode Count - Replicate 2") +
+#   ggtitle("OS384 Barcode Count Correlation") +
+#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
+#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
+#             label = paste("R-squared =", round(r_squared, 2), "\n"),
+#             hjust = 0, vjust = 1, parse = TRUE)
+# 
+# 
+# # Save the plot as an SVG file
+# ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device = "svg")
 
 
 
@@ -142,17 +109,14 @@ ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device =
 
 
 
-
-
-
 ###############     ATR BARCODE ANALYSIS       ##################
 
 
 
 # Reading in the ATR gDNA barcodes
-file_paths <- c('~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/19_384_atr_1.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/20_384_atr_2.fastq.gz.out2.txt',
-                '~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/counts/21_384_atr_3.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/19_384_atr_1.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/20_384_atr_2.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_counts/21_384_atr_3.fastq.gz.out2.txt')
 
 
 # Applying the process file function to the file paths
@@ -167,65 +131,59 @@ OS384_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 names(OS384_atr_merged)[1] <- 'barcode'
 
 
-## hamming distance section ##
+# Merging the control and treated counts
+OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_merged, OS384_atr_merged, by='barcode')
 
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS384_atr_merged %>% filter(!(barcode %in% time_0_barcodes))
-test_sample <- OS384_atr_merged %>% filter((barcode %in% time_0_barcodes))
+test_sample_extra <- OS384_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
+test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
+
+## hamming distance section ##
+
+# # Writing a for loop to add values from the extra values to the whitelist
+# for (barcode in 1:nrow(test_sample_extra)) {
+#   barcode_seq <- test_sample_extra$barcode[barcode]
+#   for (barcode_white in 1:nrow(test_sample)){
+#     barcode_white_seq <- test_sample$barcode[barcode_white]
+#     if (StrDist(barcode_seq, barcode_white_seq, method = "hamming") == 1){
+#       test_sample[barcode_white, 2:4] <- test_sample[barcode_white, 2:4] + test_sample_extra[barcode, 2:4]
+#     }
+#   }
+# }
 
 
-# Writing a for loop to add values from the extra values to the whitelist
-for (barcode in 1:nrow(test_sample_extra)) {
-  barcode_seq <- test_sample_extra$barcode[barcode]
-  for (barcode_white in 1:nrow(test_sample)){
-    barcode_white_seq <- test_sample$barcode[barcode_white]
-    if (StrDist(barcode_seq, barcode_white_seq, method = "hamming") == 1){
-      test_sample[barcode_white, 2:4] <- test_sample[barcode_white, 2:4] + test_sample_extra[barcode, 2:4]
-    }
-  }
-}
-
-
-OS384_atr_merged <- test_sample
-
-
-# Performing cpm scaling with the function
-OS384_atr_scaled <- cpm_scaling(OS384_atr_merged)
-
-
-# Changing the column names for the scaled counts
-names(OS384_atr_scaled)[5:7] <- c("barcode_count_atr_1_scaled", "barcode_count_atr_2_scaled", "barcode_count_atr_3_scaled")
-
-
-# Computing logs of cpm values
-OS384_atr_log_scaled <- OS384_atr_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
-
-
-# Computing the mean per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr = rowMeans(select(., c("barcode_count_atr_1_log", 
-                                                 "barcode_count_atr_2_log", 
-                                                 "barcode_count_atr_3_log"))))
-
-
-# Filtering out the barcodes based on T0 barcodes
-test_sample <- OS384_atr_log_scaled %>% filter(barcode %in% time_0_barcodes)
-ctrl_sample <- OS384ctrl13_log_scaled %>% filter(barcode %in% time_0_barcodes)
-
-
-# merging the control and treated counts
-test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
-
-
-# reassigning the test sample
+# Reassigning the test sample
 OS384_atr_final <- test_sample
 
 
 # Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-OS384_atr_final <- merge(OS384_atr_final, OS384ctrl0_filtered, by = "barcode")
+#OS384_atr_final <- merge(OS384_atr_final, OS384ctrl0_filtered, by = "barcode")
+
+
+# Performing cpm scaling with the function
+OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
+
+
+OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_scaled)
+
+names(OS384_atr_log_scaled)
+
+
+# Computing the mean per barcode for the merged dataframe
+OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
+  mutate(barcode_mean_atr_cpm = rowMeans(select(., c("barcode_count_384_atr_1_scaled", 
+                                                 "barcode_count_384_atr_2_scaled", 
+                                                 "barcode_count_384_atr_3_scaled"))))
+
+
+# Computing the mean cpm per barcode for the merged dataframe
+OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
+  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
+                                                        "barcode_count_ctrl_13_2_scaled", 
+                                                        "barcode_count_ctrl_13_3_scaled"))))
+
+
 
 ## General QC
 
@@ -234,25 +192,40 @@ OS384_atr_final <- merge(OS384_atr_final, OS384ctrl0_filtered, by = "barcode")
 raw_counts_df <- OS384_atr_final %>%
   select(-contains("log"), -contains("scaled"), -contains("mean"))
 
+
+# Removing the barcode column
 raw_counts_df <- raw_counts_df[,-1]
+
 
 # Compute the sum of each column
 sums <- colSums(raw_counts_df)
+
 
 sums_df <- data.frame(
   sample_type = names(sums),
   total_sum = sums
 )
 
-# Plotting the sums
-# Plotting the total sums of counts for each sample column
 
-ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
+# Adjust x-axis labels by replacing underscores and 'barcode'
+sums_df$sample_type <- gsub("barcode_", " ", sums_df$sample_type)
+
+# Create the bar plot with customized appearance
+p <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title = "Total Sums of Counts per Sample Type", x = "Sample Type", y = "Total Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate X labels for readability
+  theme_bw() +
+  labs(title = "OS384 sample counts", x = "Sample Type", y = "Total Counts") +
+  theme(
+    axis.title = element_text(size = 9),                # Font size for axis titles
+    axis.text = element_text(size = 9),                 # Font size for axis text
+    plot.title = element_text(size = 9, hjust = 0.5),   # Font size for the title and center alignment
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate X labels
+    panel.grid.major = element_blank(),                 # Remove major gridlines
+    panel.grid.minor = element_blank()                  # Remove minor gridlines
+  )
 
+# Save the plot as SVG with dimensions 2.2 by 2.2 inches
+ggsave("~/Desktop/OS384_sample_counts.svg", plot = p, width = 2, height = 2, units = "in")
 
 
 
@@ -295,56 +268,29 @@ atr_diff_merged <- OS384_atr_final %>% mutate(difference_atr_log2 = barcode_log_
 
 
 
-# Filtering the z-scores to keep those with values above 0
-z_score_diff_filtered_atr <- atr_diff_ordered %>% filter(log2_diff_zscore_atr > 0)
-
-
-# pivoting the the z-score table
-z_scores_pivot <- z_score_diff_filtered_atr %>%
-  pivot_longer(colnames(z_score_diff_filtered_atr)[3:4]) %>%
-  as.data.frame()
-
-
-# plotting z score v counts at time 0
-ggplot(atr_diff_ordered, aes(x = difference_atr_log2 , y = -log10(pnorm(-abs(log2_diff_zscore_atr))) )) + 
-  geom_point() #+
-#scale_x_continuous(trans='log10')
-
-
-pnorm(-abs(-2))
-
-
-# plotting the z-scores for the top barcode dropouts
-# THIS PLOTS THE WRONG THING - COUNTS V. LOG2 VALUES
-ggplot(z_scores_pivot, aes(x = name , y = value)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans='log10')  +
-  stat_compare_means() + 
-  theme_bw() 
-
 
 ### PLOTTING THE REPLICATES
 # Perform regression analysis
-model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 ATR Barcode Count Correlation") +
-  geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-            y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
-
+# model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+#   xlab("Log Transformed Barcode Count - Replicate 1") +
+#   ylab("Log Transformed Barcode Count - Replicate 2") +
+#   ggtitle("OS384 ATR Barcode Count Correlation") +
+#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
+#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
+#             label = paste("R-squared =", round(r_squared, 2), "\n"),
+#             hjust = 0, vjust = 1, parse = TRUE)
+# 
 
 # Save the plot as an SVG file
 ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
@@ -708,9 +654,6 @@ venn.diagram(
   width = 2150,
   main = "OS384 Barcode Selection Overlap"
 )
-
-
-
 
 
 # carrying out hypergeometric test for overlapping barcodes of all drugs
