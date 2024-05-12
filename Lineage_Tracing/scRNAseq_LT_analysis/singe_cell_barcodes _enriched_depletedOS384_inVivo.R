@@ -11,11 +11,11 @@ library(dplyr)
 
 
 # Reading in combined and trimmed fastq sequences
-Fastq_sequences <- read.delim("~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/OS384_in_vivo_LT_barcodes.txt", header = F)
+Fastq_sequences <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS384/OS384_in_vivo_LT_barcodes.txt", header = F)
 
 
 # reading in the depleted LT barcode sequences
-depleted_barcodes <- read.csv("~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/depleted_barcodes_OS384_inVivo_LT.csv")
+depleted_barcodes <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_atr_depleted_barcodes_LT.csv")
 depleted_barcodes <- depleted_barcodes[,2]
 
 
@@ -32,7 +32,7 @@ cell_barcodes <- paste(cell_barcodes, "-1", sep = "")
 
 
 # writing out the csv to upload into r on desktop
-write.csv(cell_barcodes, "~/Desktop/depleted_cell_barcodesOS384_inVivo.csv")
+write.csv(cell_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS384/depleted_cell_atr_barcodesOS384_inVivo.csv")
 
 
 ## PD analysis of the depleted in Cluster 3

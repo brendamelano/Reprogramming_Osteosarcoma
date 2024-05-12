@@ -73,6 +73,8 @@ compute_log2_scaled <- function(df) {
 }
 
 
+
+# Function fror chisquared analysis
 compute_chisq_test <- function(df, barcode_col, test_cols, ctrl_cols) {
   # Initialize an empty dataframe to store the results
   p_values <- data.frame(barcode = character(), p_value = numeric(), stringsAsFactors = FALSE)

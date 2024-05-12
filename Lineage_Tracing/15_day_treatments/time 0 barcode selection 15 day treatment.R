@@ -76,6 +76,7 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_2_scaled", 
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
+
 # Ordering based on cpm means
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled[order(-OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
 
@@ -104,8 +105,7 @@ OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_
 # ggsave("~/Desktop/OS384_ranked_barcode_LT.svg", plot = p, device = "svg", width = 2.2, height = 2.2, units = "in")
 
 
-# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the 
-# counts in order
+# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS384ctrl0_filtered <- OS384ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 > 2)
 
 

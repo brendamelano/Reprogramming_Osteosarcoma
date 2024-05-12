@@ -9,8 +9,9 @@
 p_values <- data.frame(barcode = character(), p_value = numeric())
 
 
-
+# Printing names to define test and ctrl cols
 names(OS384_atr_log_scaled)
+
 
 # Define the column names
 barcode_col <- "barcode"
@@ -29,25 +30,30 @@ OS384_atr_log_scaled <- merge(OS384_atr_log_scaled, p_values_df, by = 'barcode')
 # try computing with log values to see if the values in the middle with high p-values change
 OS384_atr_log_scaled$logFC <- log2(OS384_atr_log_scaled$barcode_mean_atr_cpm / OS384_atr_log_scaled$barcode_mean_ctrl13_cpm)
 
-# cis_diff_merged$logFC <- log2(cis_diff_merged$barcode_log_mean_cis / cis_diff_merged$barcode_log_mean_ctrl13)
 
 # Set significance level and fold change cutoffs
 sig_level <- 0.05
 fc_cutoff <- 1
 
 
-# Create the volcano plot
-ggplot(OS384_atr_log_scaled, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+volcano_plot <- ggplot(OS384_atr_log_scaled, aes(x=logFC, y=-log10(p_value))) +
+  geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 Atr Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 Atr-i enriched and depleted barcodes", x="logFC", y="-log10(p-value)") +
   theme_bw() +
-  theme(panel.grid.major = element_blank(),  # Remove major gridlines
-        panel.grid.minor = element_blank()) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 10)) + # Changed font size to 10
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") 
+  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
+  ylim(0, 30) # Set y-axis limits to 0-100
 
 
+# Save the plot
+ggsave("~/Desktop/OS384_atr_volcano_plot.svg", plot = volcano_plot, width = 2.3, height = 2.3, units = "in")
+
+
+## Idenitfying depleted and enriched barcodes
 
 # Identifying the depleted and enriched barcodes
 # filtering based on log fold change to identify positive fold change

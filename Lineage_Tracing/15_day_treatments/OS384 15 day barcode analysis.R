@@ -44,9 +44,7 @@ names(OS384_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1",
                                      "barcode_count_ctrl_13_3")
 
 
-
-
-## PLOTTING THE REPLICATES
+## PLOTTING THE ctrl-13 REPLICATES
 
 # 
 # # Perform regression analysis
@@ -76,7 +74,6 @@ names(OS384_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1",
 
 
 
-#
 # # Create a plot of just the data points (without axes, labels, and titles)
 # plot_without_axes <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
 #   geom_point() +
@@ -157,17 +154,13 @@ test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 OS384_atr_final <- test_sample
 
 
-# Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-#OS384_atr_final <- merge(OS384_atr_final, OS384ctrl0_filtered, by = "barcode")
-
-
 # Performing cpm scaling with the function
 OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
 
 
 OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_scaled)
 
-names(OS384_atr_log_scaled)
+#names(OS384_atr_log_scaled)
 
 
 # Computing the mean per barcode for the merged dataframe
