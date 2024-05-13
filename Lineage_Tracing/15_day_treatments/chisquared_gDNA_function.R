@@ -39,18 +39,18 @@ fc_cutoff <- 1
 volcano_plot <- ggplot(OS384_atr_log_scaled, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 Atr-i enriched and depleted barcodes", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 Atr-i treatment", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        text = element_text(size = 10)) + # Changed font size to 10
+        text = element_text(size = 8.5)) + 
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  ylim(0, 30) # Set y-axis limits to 0-100
+  ylim(0, 30) 
 
 
 # Save the plot
-ggsave("~/Desktop/OS384_atr_volcano_plot.svg", plot = volcano_plot, width = 2.3, height = 2.3, units = "in")
+ggsave("~/Desktop/OS384_atr_volcano_plot.svg", plot = volcano_plot, width = 2.2, height = 2.2, units = "in")
 
 
 ## Idenitfying depleted and enriched barcodes
