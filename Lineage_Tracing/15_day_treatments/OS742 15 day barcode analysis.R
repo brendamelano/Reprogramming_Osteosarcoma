@@ -1,16 +1,16 @@
 library(stats)
 library(dplyr)
 library(ggplot2)
-library(tidyr)
 library(VennDiagram)
+library(stringdist)
 library(ggpubr)
+library(tidyr)
 library(tidyverse)
 library(DESeq2)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
 library(DescTools)
-library(stringdist)
 library(ggplot2)
 library(grid)
 library(png)
@@ -35,66 +35,36 @@ result_list <- lapply(file_paths, process_file)
 OS742_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
-
-# Performing cpm scaling with the function
-OS742_ctrl13_scaled <- cpm_scaling(OS742_ctrl_13_merged)
-
 
 # Renaming the columns with the raw values
-names(OS742_ctrl13_scaled)[2:4] <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
+names(OS742_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
-
-# Changing the colun names for the scaled counts
-names(OS742_ctrl13_scaled)[5:7] <- c("barcode_count_ctrl_13_1_scaled", "barcode_count_ctrl_13_2_scaled", "barcode_count_ctrl_13_3_scaled")
-
-
-# Computing logs of cpm values
-OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
-OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
-OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
-
-
-# Computing the mean per barcode for the merged dataframe
-OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>% 
-  mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
-                                                         "barcode_count_ctrl_13_2_log", 
-                                                         "barcode_count_ctrl_13_3_log"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS742_ctrl13_scaled <- OS742_ctrl13_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
 
 ## PLOTTING THE REPLICATES
 
 
-# Perform regression analysis
-model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS742_ctrl13_scaled)
-
-
-# Extract r-squared value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS742_D13_replicate <- ggplot(OS742_ctrl13_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab("Log Barcode Count - Replicate 1") +
-  ylab("Log Barcode Count - Replicate 2") +
-  ggtitle("OS742 Barcode Count Correlation") +
-  geom_text(x = min(OS742_ctrl13_scaled$barcode_count_ctrl_13_3_log),
-            y = max(OS742_ctrl13_scaled$barcode_count_ctrl_13_2_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
-
-ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = OS742_D13_replicate, device = "svg", width = 4, height = 4, units = "in")
+# # Perform regression analysis
+# model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS742_ctrl13_scaled)
+# 
+# 
+# # Extract r-squared value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS742_D13_replicate <- ggplot(OS742_ctrl13_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#   xlab("Log Barcode Count - Replicate 1") +
+#   ylab("Log Barcode Count - Replicate 2") +
+#   ggtitle("OS742 Barcode Count Correlation") +
+#   geom_text(x = min(OS742_ctrl13_scaled$barcode_count_ctrl_13_3_log),
+#             y = max(OS742_ctrl13_scaled$barcode_count_ctrl_13_2_log),
+#             label = paste("R-squared =", round(r_squared, 2), "\n"),
+#             hjust = 0, vjust = 1, parse = TRUE)
+# 
+# ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = OS742_D13_replicate, device = "svg", width = 4, height = 4, units = "in")
 
 
 #
@@ -153,74 +123,71 @@ result_list <- lapply(file_paths, process_file)
 OS742_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
+# Merging the control and treated counts
+OS742_pf_ctrl13 <-  merge(OS742_ctrl_13_merged, OS742_pf_merged, by='V1')
+
+
+# Creating a dataframe for the barcodes not in the white list
+test_sample_extra <- OS742_pf_ctrl13 %>% filter(!(V1 %in% OS742_time_0_barcodes))
+test_sample <- OS742_pf_ctrl13 %>% filter((V1 %in% OS742_time_0_barcodes))
+
+
+# Reassigning the test sample
+OS742_pf_final <- test_sample
+
+
 # Performing cpm scaling with the function
-OS742_pf_scaled <- cpm_scaling(OS742_pf_merged)
+OS742_pf_scaled <- cpm_scaling(OS742_pf_final)
 
 
-# Changing the column names for the scaled counts
-names(OS742_pf_scaled)[2:4] <- c("barcode_count_pf_1", "barcode_count_pf_2", "barcode_count_pf_3")
-names(OS742_pf_scaled)[5:7] <- c("barcode_count_pf_1_scaled", "barcode_count_pf_2_scaled", "barcode_count_pf_3_scaled")
+# 
+OS742_pf_log_scaled <- compute_log2_scaled(OS742_pf_scaled)
 
 
-# Computing logs of cpm values
-OS742_pf_log_scaled <- OS742_pf_scaled %>% mutate(barcode_count_pf_1_log = log2(barcode_count_pf_1_scaled))
-OS742_pf_log_scaled <- OS742_pf_log_scaled %>% mutate(barcode_count_pf_2_log = log2(barcode_count_pf_2_scaled))
-OS742_pf_log_scaled <- OS742_pf_log_scaled %>% mutate(barcode_count_pf_3_log = log2(barcode_count_pf_3_scaled))
-
+names(OS742_pf_log_scaled)
 
 # Computing the mean per barcode for the merged dataframe
 OS742_pf_log_scaled <- OS742_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_pf_1_log", 
-                                                    "barcode_count_pf_2_log", 
-                                                    "barcode_count_pf_3_log"))))
+  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_42_pf_1_scaled", 
+                                                     "barcode_count_42_pf_2_scaled", 
+                                                     "barcode_count_42_pf_3_scaled"))))
 
 
+# Computing the mean cpm per barcode for the merged dataframe
 OS742_pf_log_scaled <- OS742_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_pf_1_scaled", 
-                                                    "barcode_count_pf_2_scaled", 
-                                                    "barcode_count_pf_3_scaled"))))
+  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
+                                                        "barcode_count_ctrl_13_2_scaled", 
+                                                        "barcode_count_ctrl_13_3_scaled"))))
 
 
-
-# filtering out the barcodes based on T0 barcodes
-test_sample <- OS742_pf_log_scaled %>% filter(barcode %in% time_0_barcodes)
-ctrl_sample <- OS742_ctrl13_scaled %>% filter(barcode %in% time_0_barcodes)
-
-
-# merging the control and treated counts
-test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
-
-
-# Reassigning the test_sample
-OS742_pf_final <- test_sample
 
 
 ## PLOTTING THE REPLICATES
 
 
-# Perform regression analysis
-model <- lm(barcode_count_pf_1_log ~ barcode_count_pf_2_log, data = OS742_pf_final)
-
-
-# Extract r-squared value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS742_pf_replicate <- ggplot(OS742_pf_final, aes(barcode_count_pf_1_log, barcode_count_pf_2_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab("Log Barcode Count - Replicate 1") +
-  ylab("Log Barcode Count - Replicate 2") +
-  geom_hex() +
-  ggtitle("OS742 CDK 4/6 Barcode Count Correlation") +
-  geom_text(x = min(OS742_pf_final$barcode_count_pf_1_log),
-            y = max(OS742_pf_final$barcode_count_pf_2_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
-
-ggsave("~/Desktop/OS742_pf_correlation.svg", plot = OS742_pf_replicate, device = "svg", width = 3, height = 3, units = "in")
+# # Perform regression analysis
+# model <- lm(barcode_count_pf_1_log ~ barcode_count_pf_2_log, data = OS742_pf_final)
+# 
+# 
+# # Extract r-squared value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS742_pf_replicate <- ggplot(OS742_pf_final, aes(barcode_count_pf_1_log, barcode_count_pf_2_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#   xlab("Log Barcode Count - Replicate 1") +
+#   ylab("Log Barcode Count - Replicate 2") +
+#   geom_hex() +
+#   ggtitle("OS742 CDK 4/6 Barcode Count Correlation") +
+#   geom_text(x = min(OS742_pf_final$barcode_count_pf_1_log),
+#             y = max(OS742_pf_final$barcode_count_pf_2_log),
+#             label = paste("R-squared =", round(r_squared, 2), "\n"),
+#             hjust = 0, vjust = 1, parse = TRUE)
+# 
+# ggsave("~/Desktop/OS742_pf_correlation.svg", plot = OS742_pf_replicate, device = "svg", width = 3, height = 3, units = "in")
 
 
 
@@ -318,37 +285,6 @@ read2_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVi
 #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
 
 
-
-# Depleted barcodes
-# z_score_diff_filtered_cis <- cis_diff_merged %>% filter(log2_diff_zscore_cis > 1.8)
-# z_score_diff_filtered_pf <- pf_diff_merged %>% filter(log2_diff_zscore_pf > 1.8)
-# z_score_diff_filtered_atr <- atr_diff_merged %>% filter(log2_diff_zscore_atr > 1.8)
-# 
-# 
-# # making a vector of the top dropout barcodes for all the treatments
-# cis_barcodes <- z_score_diff_filtered_cis$barcode
-# pf_barcodes <- z_score_diff_filtered_pf$barcode
-# atr_barcodes <- z_score_diff_filtered_atr$barcode
-# 
-# 
-# # finding the barcodes that overlapped in selected barcodes for all samples
-# venn.diagram(
-#   x = list(cis_barcodes, pf_barcodes, atr_barcodes),
-#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-#   filename = '~/Desktop/overlapping_barcodes.svg',
-#   output=TRUE,
-#   height = 2150,
-#   width = 2150,
-#   main = "OS384 Barcode Selection Overlap"
-# )
-# 
-# 
-# # Making a vector of the barcodes for all the treatments
-# cis_barcodes_all <- OS384_cis_final$barcode
-# pf_barcodes_all <- OS384_pf_final$barcode
-# atr_barcodes_all <- OS384_atr_final$barcode
-# 
-# 
 # # finding the barcodes that overlapped in selected barcodes for all samples
 # venn.diagram(
 #   x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),

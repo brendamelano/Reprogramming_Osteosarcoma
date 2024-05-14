@@ -83,51 +83,23 @@ write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tr
 
 
 # Initialize empty dataframe to store results
-p_values <- data.frame(barcode = character(), p_value = numeric())
+p_values_df <- data.frame(barcode = character(), p_value = numeric())
+
+names(OS742_pf_log_scaled)
+names(OS742_pf_log_scaled)[1] <- 'barcode'
+
+# Define the column names
+barcode_col <- "barcode"
+test_cols <- c("barcode_count_42_pf_1", "barcode_count_42_pf_2", "barcode_count_42_pf_3")
+ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
-# Loop through unique barcode ids
-for (barcode_id in unique(OS742_pf_final$barcode)) {
-  
-  # extract counts for test and control groups
-  barcode_test <- sum(OS742_pf_final$barcode_count_pf_1[OS742_pf_final$barcode == barcode_id],
-                      OS742_pf_final$barcode_count_pf_2[OS742_pf_final$barcode == barcode_id],
-                      OS742_pf_final$barcode_count_pf_3[OS742_pf_final$barcode == barcode_id])
-  
-  
-  barcode_ctrl <- sum(OS742_pf_final$barcode_count_ctrl_13_1[OS742_pf_final$barcode == barcode_id],
-                      OS742_pf_final$barcode_count_ctrl_13_2[OS742_pf_final$barcode == barcode_id],
-                      OS742_pf_final$barcode_count_ctrl_13_3[OS742_pf_final$barcode == barcode_id])
-  
-  
-  ctrl_total <- sum(OS742_pf_final$barcode_count_ctrl_13_1[OS742_pf_final$barcode != barcode_id],
-                    OS742_pf_final$barcode_count_ctrl_13_2[OS742_pf_final$barcode != barcode_id],
-                    OS742_pf_final$barcode_count_ctrl_13_3[OS742_pf_final$barcode != barcode_id])
-  
-  test_total <- sum(OS742_pf_final$barcode_count_pf_1[OS742_pf_final$barcode != barcode_id],
-                    OS742_pf_final$barcode_count_pf_2[OS742_pf_final$barcode != barcode_id],
-                    OS742_pf_final$barcode_count_pf_3[OS742_pf_final$barcode != barcode_id])
-  
-  
-  # Create data frame for chi-squared test
-  counts_barcode <- c(barcode_ctrl, barcode_test)
-  counts_total <- c(ctrl_total, test_total)
-  barcode_df <- data.frame(counts_barcode, counts_total)
-  
-  
-  # perform chi-squared test and extract p-value
-  chi_sq <- chisq.test(barcode_df)$statistic
-  p_value <- pchisq(chi_sq, df = 1, lower.tail = FALSE)
-  
-  
-  # append barcode id and p-value to results dataframe
-  p_values <- rbind(p_values, data.frame(barcode = barcode_id, p_value = p_value))
-  
-}
+# Compute chi-squared tests
+p_values_df <- compute_chisq_test(OS742_pf_log_scaled, barcode_col, test_cols, ctrl_cols)
 
 
 # reassigned this to cis_diff_merged in the forloop above
-OS742_pf_final <- merge(OS742_pf_final, p_values, by = 'barcode')
+OS742_pf_final <- merge(OS742_pf_log_scaled, p_values_df, by = 'barcode')
 
 
 # computing log fold change for different samples
@@ -142,10 +114,10 @@ fc_cutoff <- 1
 
 
 # Create the volcano plot
-ggplot(OS742_pf_final, aes(x=logFC, y=-log10(p_value))) +
+volcano_plot <- ggplot(OS742_pf_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS742 CDK 4/6 inhibitor Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS742 CDK 4/6-i treatment", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),  # Remove major gridlines
         panel.grid.minor = element_blank()) +
@@ -154,6 +126,9 @@ ggplot(OS742_pf_final, aes(x=logFC, y=-log10(p_value))) +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
   xlim(-2.5, 2.5)
 
+
+# Save the plot
+ggsave("~/Desktop/OS742_cdk_volcano_plot.svg", plot = volcano_plot, width = 2.4, height = 2.4, units = "in")
 
 
 ## ENRICHED AND DEPLETED BARCODES

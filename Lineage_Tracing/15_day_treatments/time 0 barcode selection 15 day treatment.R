@@ -241,19 +241,19 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled[order(-OS742ctrl0_log_scaled$barc
 OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# Use ggplot to create the plot
-p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  geom_point() + # Add points
-  scale_y_log10() + # Log scale for Y axis
-  #geom_vline(xintercept = 988, color = "red") + 
-  labs(title = "OS742 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank()) # Remove minor grid lines
-
-# Saving as svg
-ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
+# # Use ggplot to create the plot
+# p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   geom_point() + # Add points
+#   scale_y_log10() + # Log scale for Y axis
+#   #geom_vline(xintercept = 988, color = "red") + 
+#   labs(title = "OS742 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(panel.grid.major = element_blank(), # Remove major grid lines
+#         panel.grid.minor = element_blank()) # Remove minor grid lines
+# 
+# # Saving as svg
+# ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
 
 
 
@@ -263,7 +263,7 @@ OS742ctrl0_filtered <- OS742ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 
 
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
-OS052_time_0_barcodes <- OS742ctrl0_filtered$barcode
+OS742_time_0_barcodes <- OS742ctrl0_filtered$V1
 
 
 ## performing regression for r^2 value of replicates ##

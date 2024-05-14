@@ -158,7 +158,9 @@ OS384_atr_final <- test_sample
 OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
 
 
+# 
 OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_scaled)
+
 
 #names(OS384_atr_log_scaled)
 
