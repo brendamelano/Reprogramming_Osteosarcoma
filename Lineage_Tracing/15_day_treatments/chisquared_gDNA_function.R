@@ -108,7 +108,6 @@ OS742_pf_final$logFC <- log2(OS742_pf_final$barcode_mean_pf_cpm / OS742_pf_final
 
 
 # Set significance level and fold change cutoffs
-
 sig_level <- 0.05
 fc_cutoff <- 1
 

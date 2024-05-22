@@ -504,7 +504,7 @@ data_long <- pivot_longer(raw_counts_df,
                           values_to = "counts")
 
 
-# Cap data at 50,000
+# Cap data at 1,000
 data_long <- data_long %>%
   mutate(counts = ifelse(counts > 1000, 1000, counts))
 
@@ -520,6 +520,7 @@ summary_data <- data_long %>%
 
 # Merge the summary back to the original long data for plotting
 data_long_summary <- merge(data_long, summary_data, by = "condition")
+
 
 # Plotting
 ggplot(data_long_summary, aes(x = condition, y = counts)) +
