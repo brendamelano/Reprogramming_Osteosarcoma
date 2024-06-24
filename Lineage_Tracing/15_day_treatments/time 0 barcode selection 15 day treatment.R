@@ -1,7 +1,7 @@
+library(VennDiagram)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-library(VennDiagram)
 library(ggpubr)
 library(tidyverse)
 library(statmod)
@@ -136,7 +136,9 @@ r_squared <- summary(model)$r.squared
 first_two_replicates_384_D0 <- ggplot(OS384ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
   geom_point() +
   theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 9),  # Change the font size for axis titles
+        plot.title = element_text(size = 9)) +  # Change the font size for the main title
   xlab("Log Transformed Barcode Count - Replicate 1") +
   ylab("Log Transformed Barcode Count - Replicate 2") +
   ggtitle("OS384 Barcode Count Correlation Time 0") +
@@ -147,7 +149,7 @@ first_two_replicates_384_D0 <- ggplot(OS384ctrl0_filtered, aes(barcode_count_ctr
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_384_D0.svg", plot = first_two_replicates_384_D0, device = "svg")
+ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_384_D0, device = "png", width = 3.2, height = 3.2)
 
 
 

@@ -17,7 +17,10 @@ library(tidyverse)
 OS833_NFE2L3_viability <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Viability_analysis/Processed_2024_04_23_833_NFE2L3_viability_15_day.csv")
 
 
+# Defining the colors for ctrl and NFE2L3 KD
 pastel_colors <- c("ctrl" = "#FFB3BA", "nfe2l3" = "#A6E1FA")
+
+
 
 OS833_NFE2L3_viability <- OS833_NFE2L3_viability %>%
   filter(drug %in% c("atr", "ctrl"), gene %in% c("ctrl", "nfe2l3"))
@@ -37,25 +40,27 @@ t_test_results <- t.test(value ~ gene,
 p_value <- t_test_results$p.value  # Extracting the p-value from the test results
 
 
-# 
 OS833_NFE2L3 <- ggplot(summary_df, aes(x=drug, y=mean_value, fill=gene)) +
   geom_bar(stat="identity", position="dodge") +
   geom_errorbar(aes(ymin=mean_value-sd_value, ymax=mean_value+sd_value), 
                 width=.2,                    # Adjust the width of the error bars
                 position=position_dodge(.9)) +
-  labs(title="In vitro Atr effiacy with NFE2L3 KD", 
+  labs(title="Modified Title: In vitro Atr efficacy with NFE2L3 KD", 
        y="Fluorescent Measurement", x="Gene") +
+  
   theme_bw() +  # Use theme_bw as a base theme
   theme(panel.grid.major = element_blank(),  # Remove major grid lines
         panel.grid.minor = element_blank()) +  # Remove minor grid lines
+  
   scale_fill_manual(values = pastel_colors) +
+  
   # Annotate with the p-value
   annotate("text", x = 1, y = max(summary_df$mean_value + summary_df$sd_value), label = sprintf("p = %.3f", p_value))
 
-
 print(OS833_NFE2L3)
 
-
+# Save the plot as SVG to the Desktop
+ggsave(filename = "~/Desktop/OS833_NFE2L3.svg", plot = OS833_NFE2L3, width = 3, height = 2.2, units = "in")
 
 
 # Calculate the ratios for each gene
@@ -63,6 +68,7 @@ ratio_data <- OS833_STAT1_viability %>%
   pivot_wider(names_from = drug, values_from = value) %>%  # Use drug for column names and value for data
   mutate(ratio = cis/ctrl) %>%  # Calculate the ratio
   select(gene, ratio)     
+
 
 # Plot the ratios
 ggplot(ratio_data, aes(x=gene, y=ratio, fill=gene)) +

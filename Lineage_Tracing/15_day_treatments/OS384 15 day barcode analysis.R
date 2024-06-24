@@ -1,9 +1,9 @@
 library(stringdist)
+#library(VennDiagram)
 library(stats)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-library(VennDiagram)
 library(ggpubr)
 library(tidyverse)
 #library(DESeq2)
@@ -136,6 +136,7 @@ OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_merged, OS384_atr_merged, by='barcode')
 test_sample_extra <- OS384_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
 test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 
+
 ## hamming distance section ##
 
 # # Writing a for loop to add values from the extra values to the whitelist
@@ -205,6 +206,7 @@ sums_df <- data.frame(
 # Adjust x-axis labels by replacing underscores and 'barcode'
 sums_df$sample_type <- gsub("barcode_", " ", sums_df$sample_type)
 
+
 # Create the bar plot with customized appearance
 p <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
@@ -247,48 +249,34 @@ atr_diff_merged <- OS384_atr_final %>% mutate(difference_atr_log2 = barcode_log_
 
 
 
-# ## Plotting barcodes
-# atr_diff_ordered_positive <-  filter(atr_diff_ordered, log2_diff_zscore_atr > 0)
-# 
-
-# # plotting z score v counts at time 0
-# ggplot(atr_diff_ordered, aes(x = barcode_log_mean_ctrl_0 , y = log2_diff_zscore_atr )) + 
-#   geom_point() +
-#   scale_x_continuous(trans='log10') + 
-#   geom_line(y=1.96) + 
-#   geom_line(y = -1.96) + 
-#   theme_minimal() + 
-#   ylab('Z-score of log2 difference') + 
-#   ggtitle('Barcode selection with ATR inhibitor')
-
-
-
-
 ### PLOTTING THE REPLICATES
-# Perform regression analysis
-# model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
-# 
-# 
-# # Extract r-squared and p-value
-# r_squared <- summary(model)$r.squared
-# 
-# 
-# # Create the ggplot
-# OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
-#   geom_point() +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS384 ATR Barcode Count Correlation") +
-#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-#             label = paste("R-squared =", round(r_squared, 2), "\n"),
-#             hjust = 0, vjust = 1, parse = TRUE)
-# 
+#Perform regression analysis
+model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_3_scaled_log, data = OS384_atr_log_scaled)
+
+
+# Extract r-squared and p-value
+r_squared <- summary(model)$r.squared
+
+
+# Create the ggplot
+OS384_atr_replicate <- ggplot(OS384_atr_log_scaled, aes(barcode_count_384_atr_3_scaled_log, barcode_count_384_atr_1_scaled_log)) +
+  geom_point() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 9),  # Change the font size for axis titles
+        plot.title = element_text(size = 9)) +  # Change the font size for the main title
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Log Transformed Barcode Count - Replicate 1") +
+  ylab("Log Transformed Barcode Count - Replicate 2") +
+  ggtitle("OS384 ATR Barcode Count Correlation") +
+  geom_text(x = min(OS384_atr_log_scaled$barcode_count_384_atr_3_scaled_log),
+            y = max(OS384_atr_log_scaled$barcode_count_384_atr_1_scaled_log),
+            label = paste("R-squared =", round(r_squared, 2), "\n"),
+            hjust = 0, vjust = 1, parse = TRUE)
+
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
+ggsave("~/Desktop/OS384_atr_replicate.png", plot = OS384_atr_replicate,  device = "png", width = 3.2, height = 3.2)
 
 
 LT_depleted_cluster_3 <- read.csv('~/Desktop/LT_depleted_cluster_3.csv')
