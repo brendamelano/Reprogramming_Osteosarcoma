@@ -22,9 +22,9 @@ library(png)
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_1_S31_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_2_S32_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_3_S33_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_1_S31_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_2_S32_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_3_S33_L003_R1_001.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -33,6 +33,7 @@ result_list <- lapply(file_paths, process_file)
 
 # Merging the data frames by 'V1'
 OS052_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
+
 
 # Renaming the first column to barcode
 names(OS052_ctrl_13_merged)[1] <- 'barcode'
@@ -43,13 +44,13 @@ OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% OS052_time
 
 
 
-###### Reading in samples
+###### Reading in ATR samples   ########
 
 
 # Reading in the ATR gDNA barcodes
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_1_S34_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_2_S35_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_atr_3_S36_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_1_S34_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_2_S35_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_3_S36_L003_R1_001.fastq.gz.out2.txt')
 
 
 # Applying the process file function to the file paths
@@ -73,6 +74,7 @@ test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
 # Resetting the test sample to a OS052 name
 OS052_atr_merged <- test_sample
 
+
 # Getting a new list of barcodes with which to filter the dataframes
 merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'barcode'))
 merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
@@ -83,7 +85,7 @@ merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
 
 
 
-# Creating a dataframe for the barcodes not in the white list
+# Filtering based. on barcodes within both dataframes
 OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 
@@ -91,7 +93,7 @@ OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr
 OS052_ctrl13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
 
 
-# Changing the colun names for the scaled counts
+# Changing the column names for the scaled counts
 names(OS052_ctrl13_scaled)[2:4] <- c("barcode_count_ctrl_13_1", 
                                      "barcode_count_ctrl_13_2", 
                                      "barcode_count_ctrl_13_3")

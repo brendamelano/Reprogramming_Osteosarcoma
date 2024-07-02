@@ -175,7 +175,7 @@ write.csv(rc_enriched_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day
 
 
 
-# function for performing chi-squared analysis
+# Function for performing chi-squared analysis
 perform_chi_squared_analysis <- function(data, drug, barcode_colname, test_colnames, ctrl_colnames) {
   
   # Initialize an empty data frame to store results
@@ -224,6 +224,7 @@ OS052_atr_final <- merge(OS052_atr_final, atr_p_values, by = 'barcode')
 
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
+# test difference of logs as well
 OS052_atr_final$logFC <- log2(OS052_atr_final$barcode_cpm_mean_atr / OS052_atr_final$barcode_mean_ctrl13_cpm)
 
 
@@ -260,18 +261,19 @@ depleted_barcodes <- depleted_filtered_atr$barcode
 # changing the barcode type to DNA in order to later take the reverse complement
 depleted_barcodes <- dna(depleted_barcodes)
 
-rc_depleted_barcodes <- depleted_barcodes
+#rc_depleted_barcodes <- depleted_barcodes
 
-# getting the reverse complement of the top barcodes
-#rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+
+# Getting the reverse complement of the top barcodes
+rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
 
 
 # Creating a dataframe of the depleted barcodes
 rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
 
 
-# Writing the dropout barcodes to the single cell analysis folder
-write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.csv")
+# Writing the dropout barcodes to the single cell analysis folder as txt file to be uploaded onto wynton
+write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
 
 

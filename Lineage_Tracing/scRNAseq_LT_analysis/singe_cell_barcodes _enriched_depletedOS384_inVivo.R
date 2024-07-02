@@ -371,6 +371,11 @@ depleted_barcodes <- depleted_barcodes[,2]
 filtered_fastqs <- dplyr::filter(Fastq_sequences, grepl(paste(depleted_barcodes, collapse="|"), V1))
 
 
+
+# The fastq sequences took forever to load, so I uploaded it to khayyam for OS742 and filtered on there
+# grep -f OS742_enriched_barcodes.txt OS742_in_vivo_LT_barcodes.txt > OS742_enriched_FASTQ_10X_sequences.txt
+
+
 # Getting the cell barcode sequences for the fastq sequences that remained (first 16 bases)
 cell_barcodes <- substr(filtered_fastqs$V1, 1, 16)
 

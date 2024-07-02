@@ -335,9 +335,9 @@ seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_1_S28_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_2_S29_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_3_S30_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_1_S28_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_2_S29_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_3_S30_L003_R1_001.fastq.gz.out2.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -448,9 +448,11 @@ filtered_df <- OS052ctrl0_log_scaled %>%
 #        height = 4, # Height in inches
 #        dpi = 300)  # DPI, optional for SVG
 
+
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 
+names(OS052ctrl0_filtered)[1] <- 'barcode'
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
 OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
