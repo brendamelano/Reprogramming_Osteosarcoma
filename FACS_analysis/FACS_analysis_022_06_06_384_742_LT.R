@@ -9,9 +9,11 @@ library(svglite)
 library(ggplot2)
 
 
-# Read in flow data from the FACS sort for OS384 and OS742 for the pilot LT experiment
-fs <- read.flowSet(path = "~/Desktop/Reprogramming_Osteosarcoma/FACS_analysis/FACS_2022_06_06_384_742_LT/", pattern = ".fcs", alter.names = T)
 
+
+
+# Read in flow data from the FACS sort for OS384 and OS742 LT experiment
+fs <- read.flowSet(path = "~/Desktop/Reprogramming_Osteosarcoma/FACS_analysis/FACS_2022_06_06_384_742_LT/", pattern = ".fcs", alter.names = T)
 
 
 ##############    OS384     #############
@@ -56,9 +58,10 @@ g.singlets <- polygonGate(filterId = "Singlets",
 ggcyto(gs[[1]], aes(x=FSC.A, y=FSC.H), subset="root") + 
   geom_hex(bins = 200)+
   geom_gate(g.singlets)+
-  ggcyto_par_set(limits = "instrument") +
+  #ggcyto_par_set(limits = "instrument") +
   theme_bw()#+
   #geom_point(color="blue", shape=18 ,size=8)
+
 
 
 # Add gate to GatingSet
@@ -201,7 +204,7 @@ OS384_FACS_overlap <- OS384_FACS_overlap +
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/OS384_FACS_overlap.svg", plot = OS384_FACS_overlap, device = "svg")
+ggsave("~/Desktop/OS384_FACS_overlap.svg", plot = OS384_FACS_overlap, device = "svg", width = 2.5, height = 2.5, units = "in")
 
 
 percentage_ctrl <- sum(fs_ctrl[[BFP]] > threshold) / nrow(fs_ctrl) * 100

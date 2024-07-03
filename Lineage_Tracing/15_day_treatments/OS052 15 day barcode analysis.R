@@ -1,3 +1,4 @@
+library(stringdist)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -9,7 +10,6 @@ library(tidyverse)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
-library(stringdist)
 library(ggplot2)
 library(grid)
 library(png)
@@ -44,7 +44,8 @@ OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% OS052_time
 
 
 
-###### Reading in ATR samples   ########
+######  READING IN ATR SAMPLES   ########
+
 
 
 # Reading in the ATR gDNA barcodes
@@ -80,12 +81,7 @@ merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'b
 merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
 
 
-
-##########
-
-
-
-# Filtering based. on barcodes within both dataframes
+# Filtering based on barcodes within both dataframes
 OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 
@@ -112,7 +108,7 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_1
 
 
 
-# Computing the mean per barcode for the merged dataframe
+# Computing the mean control log per barcode for the merged dataframe
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% 
   mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
                                                          "barcode_count_ctrl_13_2_log", 
@@ -155,44 +151,8 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 
-# plotting dots and axes separately
-# # Create a plot of just the data points (without axes, labels, and titles)
-# plot_without_axes <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-#   geom_point() +
-#   theme_void()  # This removes all axes, text, etc.
-# 
-# 
-# # Save the data points as a PNG
-# png(filename = "data_points.png", width = 800, height = 600)
-# print(plot_without_axes)
-# dev.off()
-# 
-# # Read the PNG back in
-# img <- rasterGrob(readPNG("data_points.png"), interpolate=TRUE)
-# 
-# # Overlay the axes, labels, and titles on the PNG
-# OS384_D13_replicate <- ggplot(OS384ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-#   annotation_custom(img, xmin = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log), 
-#                     xmax = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log), 
-#                     ymin = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log), 
-#                     ymax = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log)) +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS384 Barcode Count Correlation") +
-#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-#             label = paste("R-squared =", round(r_squared, 2)),
-#             hjust = 0, vjust = 1, parse = TRUE)
-
-
-
 ###############     ATR BARCODE ANALYSIS       ##################
 
-
-
-## hamming distance section ##
 
 
 # Creating a dataframe for the barcodes not in the white list
@@ -266,8 +226,6 @@ OS052_atr_final <- merge(OS052_atr_final, OS052ctrl0_filtered, by = "barcode")
 
 
 
-
-
 ### PLOTTING THE REPLICATES
 
 # Perform regression analysis
@@ -296,15 +254,10 @@ OS052_atr_final <- merge(OS052_atr_final, OS052ctrl0_filtered, by = "barcode")
 #ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
 
 
-LT_depleted_cluster_3 <- read.csv('~/Desktop/LT_depleted_cluster_3.csv')
-LT_depleted_cluster_3 <- as.list(LT_depleted_cluster_3[1])
-LT_depleted_cluster_3 <- dna(LT_depleted_cluster_3)
-LT_depleted_cluster_3 <- seq_complement(seq_reverse(LT_depleted_cluster_3))
-LT_depleted_cluster_3 <- as.list(LT_depleted_cluster_3)
-
 # Filter the dataframe based on the barcodes
 filtered_data <- atr_diff_merged %>%
   filter(barcode %in% LT_depleted_cluster_3)
+
 
 # Plot the data
 ggplot(filtered_data, aes(x = barcode)) + 
@@ -316,8 +269,8 @@ ggplot(filtered_data, aes(x = barcode)) +
   theme_minimal()
 
 
-
 ## General QC
+
 # Subset the dataframe to exclude columns with 'log', 'scaled', 'mean'
 raw_counts_df <- OS384_atr_final %>%
   select(-contains("log"), -contains("scaled"), -contains("mean"))
@@ -332,8 +285,10 @@ sums_df <- data.frame(
   total_sum = sums
 )
 
+
 # Plotting the sums
 # Plotting the total sums of counts for each sample column
+
 
 ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
@@ -408,8 +363,6 @@ test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 OS052_pf_final <- test_sample
 
 
-## running the function
-
 #test_sample <- OS384_pf
 
 
@@ -429,7 +382,7 @@ pf_diff_ordered <- merge(pf_diff_ordered, OS384_ctrl_0_unique, by = "barcode")
 
 
 
-######  QC analysis    ########
+######  QC analysis for all treatments together  ########
 
 
 
@@ -439,11 +392,12 @@ raw_counts_df_pf <- OS052_pf_final %>%
          -contains("mean"), -contains("StdDev"), -contains("Index"))
 
 
-raw_counts_df_atr <- OS384_atr_final %>%
+raw_counts_df_atr <- OS052_atr_final %>%
   select(-contains("log"), -contains("scaled"), 
          -contains("mean"), -contains("StdDev"), -contains("Index"))
 
 
+# Merging the raw counts from the atr and pf treatment
 raw_counts_df <- left_join(raw_counts_df_atr, raw_counts_df_pf)
 raw_counts_df[is.na(raw_counts_df)] <- 0
 
@@ -453,6 +407,7 @@ raw_counts_df <- raw_counts_df[,-1]
 
 # Compute the sum of each column
 sums <- colSums(raw_counts_df)
+
 
 sums_df <- data.frame(
   sample_type = names(sums),
@@ -469,33 +424,14 @@ plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
         panel.grid.major = element_blank(), # Remove major gridlines
         panel.grid.minor = element_blank()) # Remove minor gridlines
 
+
 # Print the plot
 print(plot)
 
 ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 3.3, height = 4)
 
 
-# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean'
-raw_counts_df <- OS384_atr_final %>%
-  select(-contains("log"), -contains("scaled"), -contains("mean"), -contains("StdDev"), -contains("Index"))
 
-raw_counts_df <- raw_counts_df[,-1]
-
-# Compute the sum of each column
-sums <- colSums(raw_counts_df)
-
-sums_df <- data.frame(
-  sample_type = names(sums),
-  total_sum = sums
-)
-
-
-# Plotting the total sums of counts for each sample column
-ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
-  geom_bar(stat = "identity") +
-  theme_bw() +
-  labs(title = "OS052 Total Sums of Counts per Sample", x = "Sample Type", y = "Total Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate X labels for readability
 
 
 
@@ -585,8 +521,6 @@ read2_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVi
 
 
 #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
-
-
 
 
 
@@ -697,25 +631,6 @@ ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) +
 # creating a dataframe without the barcodes
 diff_only <- difference_4_drugs[,-1]
 
-
-
-######    SUMMARIZING BARCODE STATS    ######
-
-
-
-# summarizing the mean of the barcodes for all conditions
-dropout_barcodes_stats <- diff_only %>% summarize_all(mean)
-
-
-# renaming the row to mean
-rownames(dropout_barcodes_stats)[1] <- "mean"
-
-# binding the mean and median stats for all the conditionss
-dropout_barcodes_stats <- rbind(dropout_barcodes_stats, dropout_barcodes_median)
-
-
-# renaming the second row to median
-rownames(dropout_barcodes_stats)[2] <- "median"
 
 
 

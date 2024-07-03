@@ -4,6 +4,8 @@ library(ggplot2)
 library(tidyr)
 library(ggpubr)
 library(tidyverse)
+install.packages("ggrastr")
+library(ggrastr)
 library(statmod)
 library(bioseq)
 
@@ -388,16 +390,22 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled[order(-OS052ctrl0_log_scaled$barc
 OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# # Use ggplot to create the ranked barcode plot
-# ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-#   geom_line() + # Draw lines
-#   geom_point() + # Add points
-#   scale_y_log10() + # Log scale for Y axis
-#   geom_vline(xintercept = 900, color = "red") + # Vertical line at x = 900
-#   labs(title = "OS052 Lineage Tracing ranked barcode plot", y = "mean cpm", x = "") + # Add titles and labels
-#   theme_bw() + # Use a minimal theme for a cleaner look
-#   theme(panel.grid.major = element_blank(), # Remove major grid lines
-#   panel.grid.minor = element_blank()) # Remove minor grid lines
+
+# Rasterized points 
+plot <- ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  rasterise(geom_point(), dpi = 300) + # Add rasterized points
+  scale_y_log10() + # Log scale for Y axis
+  labs(title = "OS052 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10)) # Remove minor grid lines
+
+# Save the plot as SVG with specified dimensions
+ggsave("~/Desktop/OS052_lineage_tracing_plot.svg", plot = plot, width = 2.5, height = 2.5, units = "in")
+
 
 
 # Computing standard deviation of the barcodes
