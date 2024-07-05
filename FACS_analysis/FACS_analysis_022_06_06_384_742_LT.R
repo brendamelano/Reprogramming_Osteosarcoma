@@ -10,8 +10,6 @@ library(ggplot2)
 
 
 
-
-
 # Read in flow data from the FACS sort for OS384 and OS742 LT experiment
 fs <- read.flowSet(path = "~/Desktop/Reprogramming_Osteosarcoma/FACS_analysis/FACS_2022_06_06_384_742_LT/", pattern = ".fcs", alter.names = T)
 
@@ -187,13 +185,40 @@ OS384_FACS_overlap <- ggplot() +
   theme_bw() +
   theme(legend.title = element_blank()) 
 
+OS384_FACS_overlap <- ggplot() +
+  geom_density(data = fs_ctrl, aes(x = BFP, fill = "Control"), alpha = 0.5) +
+  geom_density(data = fs_LT, aes(x = BFP, fill = "LT"), alpha = 0.5) +
+  scale_fill_manual(values = c("red", "blue"),
+                    labels = c("Control", "LT")) +
+  scale_x_flowjo_biexp() +
+  geom_vline(xintercept = 2400, linetype = "dashed", color = "red") +
+  ggtitle('OS384 BFP positive cells') +
+  theme_bw() +
+  theme(
+    legend.title = element_blank(),
+    plot.title = element_text(size = 10),     # Set the title font size to 12
+    axis.title.x = element_text(size = 10),   # Set the x-axis title font size to 12
+    axis.title.y = element_text(size = 10),   # Set the y-axis title font size to 12
+    axis.text.x = element_text(size = 10),    # Set the x-axis text font size to 12
+    axis.text.y = element_text(size = 10),    # Set the y-axis text font size to 12
+    legend.text = element_text(size = 10)     # Set the legend text font size to 12
+  )
+
+
 
 
 print(OS384_FACS_overlap)
 
+# Save the plot as an SVG file
+ggsave("~/Desktop/OS384_FACS_overlap.svg", plot = OS384_FACS_overlap, device = "svg", width = 4, height = 2.5, units = "in")
+
+
+
+
 # Calculate percentage above threshold line
 ctrl_above_threshold <- sum(fs_ctrl$BFP > 2400) / nrow(fs_ctrl) * 100
 lt_above_threshold <- sum(fs_LT$BFP > 2400) / nrow(fs_LT) * 100
+
 
 # Add percentage above threshold line
 OS384_FACS_overlap <- OS384_FACS_overlap +
@@ -202,9 +227,6 @@ OS384_FACS_overlap <- OS384_FACS_overlap +
   annotate("text", x = 2400, y = 0.03, label = paste0("LT: ", percent(lt_above_threshold)),
            vjust = 0, hjust = -0.5, color = "black")
 
-
-# Save the plot as an SVG file
-ggsave("~/Desktop/OS384_FACS_overlap.svg", plot = OS384_FACS_overlap, device = "svg", width = 2.5, height = 2.5, units = "in")
 
 
 percentage_ctrl <- sum(fs_ctrl[[BFP]] > threshold) / nrow(fs_ctrl) * 100
