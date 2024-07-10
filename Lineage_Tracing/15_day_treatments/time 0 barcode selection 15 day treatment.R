@@ -1,9 +1,9 @@
 library(VennDiagram)
+library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(ggpubr)
-library(tidyverse)
 library(ggrastr)
 library(statmod)
 library(bioseq)
@@ -81,29 +81,25 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>%
 # Ordering based on cpm means
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled[order(-OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
 
+
 OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# # Use ggplot to create the plot
-# p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-#   geom_line() + # Draw lines
-#   geom_point() + # Add points
-#   scale_y_log10() + # Log scale for Y axis
-#   labs(title = "OS384 LT Ranked Barcodes", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
-#   theme_bw() + # Use a minimal theme for a cleaner look
-#   theme(
-#     panel.grid.major = element_blank(), # Remove major grid lines
-#     panel.grid.minor = element_blank(), # Remove minor grid lines
-#     plot.title = element_text(size = 9, face = "bold"), # Title font size
-#     axis.title.x = element_text(size = 8), # X-axis title font size
-#     axis.title.y = element_text(size = 8), # Y-axis title font size
-#     axis.text.x = element_text(size = 8), # X-axis tick label font size
-#     axis.text.y = element_text(size = 8) # Y-axis tick label font size
-#   )
-# 
-# 
-# # Saving svg file
-# ggsave("~/Desktop/OS384_ranked_barcode_LT.svg", plot = p, device = "svg", width = 2.2, height = 2.2, units = "in")
+# Use ggplot to create the plot
+p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  rasterise(geom_point(), dpi = 300) + # Add rasterized points
+  scale_y_log10() + # Log scale for Y axis
+  labs(title = "OS384 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10)) # Remove minor grid lines
+
+
+# Save the plot as SVG with specified dimensions
+ggsave("~/Desktop/OS384_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
@@ -244,19 +240,21 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled[order(-OS742ctrl0_log_scaled$barc
 OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# # Use ggplot to create the plot
-# p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-#   geom_line() + # Draw lines
-#   geom_point() + # Add points
-#   scale_y_log10() + # Log scale for Y axis
-#   #geom_vline(xintercept = 988, color = "red") + 
-#   labs(title = "OS742 Lineage Tracing ranked barcode plot", y = "Mean CPM", x = "Ranked LT Barcodes") + # Add titles and labels
-#   theme_bw() + # Use a minimal theme for a cleaner look
-#   theme(panel.grid.major = element_blank(), # Remove major grid lines
-#         panel.grid.minor = element_blank()) # Remove minor grid lines
-# 
-# # Saving as svg
-# ggsave("~/Desktop/OS742_ranked_barcode_LT.svg", plot = p, device = "svg", width = 4, height = 4, units = "in")
+# Use ggplot to create the plot
+p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+  geom_line() + # Draw lines
+  rasterise(geom_point(), dpi = 300) + # Add rasterized points
+  scale_y_log10() + # Log scale for Y axis
+  labs(title = "OS742 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+  theme_bw() + # Use a minimal theme for a cleaner look
+  theme(panel.grid.major = element_blank(), # Remove major grid lines
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10)) # Remove minor grid lines
+
+
+# Save the plot as SVG with specified dimensions
+ggsave("~/Desktop/OS742_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
 
 
 
@@ -401,6 +399,7 @@ plot <- ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0
         panel.grid.minor = element_blank(),
         text = element_text(size = 10),
         plot.title = element_text(size = 10)) # Remove minor grid lines
+
 
 # Save the plot as SVG with specified dimensions
 ggsave("~/Desktop/OS052_lineage_tracing_plot.svg", plot = plot, width = 2.5, height = 2.5, units = "in")
