@@ -334,9 +334,9 @@ seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_1_S28_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_2_S29_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_3_S30_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_1_S1_L001_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_2_S2_L001_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_0_-_3_S3_L001_R1_001.fastq.gz.out1.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -388,22 +388,21 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 
 
 
-# Rasterized points 
-plot <- ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  rasterise(geom_point(), dpi = 300) + # Add rasterized points
-  scale_y_log10() + # Log scale for Y axis
-  labs(title = "OS052 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank(),
-        text = element_text(size = 10),
-        plot.title = element_text(size = 10)) # Remove minor grid lines
-
-
-# Save the plot as SVG with specified dimensions
-ggsave("~/Desktop/OS052_lineage_tracing_plot.svg", plot = plot, width = 2.5, height = 2.5, units = "in")
-
+# Rasterized points
+# plot <- ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   rasterise(geom_point(), dpi = 300) + # Add rasterized points
+#   scale_y_log10() + # Log scale for Y axis
+#   labs(title = "OS052 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(panel.grid.major = element_blank(), # Remove major grid lines
+#         panel.grid.minor = element_blank(),
+#         text = element_text(size = 10),
+#         plot.title = element_text(size = 10)) # Remove minor grid lines
+# 
+# 
+# # Save the plot as SVG with specified dimensions
+# ggsave("~/Desktop/OS052_lineage_tracing_plot.svg", plot = plot, width = 2.5, height = 2.5, units = "in")
 
 
 # Computing standard deviation of the barcodes
@@ -414,7 +413,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
 
 
 # Defining a threshold for the standard deviation cutoff
-threshold <- 8000
+threshold <- 4500
 
 
 # Filtering based on the stdev threshhold
@@ -424,28 +423,28 @@ filtered_df <- OS052ctrl0_log_scaled %>%
 
 ## Plotting replicates
 
-# # Perform regression analysis
-# model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = filtered_df)
-# 
-# 
-# # Extract r-squared and p-value
-# r_squared <- summary(model)$r.squared
-# 
-# 
-# # Create the ggplot for replicate correlation in D0 control
-# first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
-#   geom_point() +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS052 Barcode Count Correlation") +
-#   geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-#             y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-#             label = paste("R-squared =", round(r_squared, 2)),
-#             hjust = 0, vjust = 1, parse = TRUE)
-# 
-# first_two_replicates_052_D0
+# Perform regression analysis
+model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = filtered_df)
+
+
+# Extract r-squared and p-value
+r_squared <- summary(model)$r.squared
+
+
+# Create the ggplot for replicate correlation in D0 control
+first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+  geom_point() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Log Transformed Barcode Count - Replicate 1") +
+  ylab("Log Transformed Barcode Count - Replicate 2") +
+  ggtitle("OS052 Barcode Count Correlation") +
+  geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+            y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+            label = paste("R-squared =", round(r_squared, 2)),
+            hjust = 0, vjust = 1, parse = TRUE)
+
+first_two_replicates_052_D0
 
 # ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
 #        plot = first_two_replicates_052_D0, 
@@ -458,12 +457,13 @@ filtered_df <- OS052ctrl0_log_scaled %>%
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
 
+
+# Renaming the barcode column
 names(OS052ctrl0_filtered)[1] <- 'barcode'
+
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
 OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
-
-
 
 
 

@@ -22,9 +22,9 @@ library(png)
 
 
 # Creating the file paths to read in
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_1_S31_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_2_S32_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_3_S33_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_1_S4_L001_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_2_S5_L001_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_ctrl_13_-_3_S6_L001_R1_001.fastq.gz.out1.txt')
 
 
 # Applying the file_paths function to read in and process the files
@@ -44,14 +44,14 @@ OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% OS052_time
 
 
 
-######  READING IN ATR SAMPLES   ########
+############   READING IN ATR SAMPLES     ##############
 
 
 
 # Reading in the ATR gDNA barcodes
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_1_S34_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_2_S35_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_3_S36_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_1_S154_L008_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_2_S155_L008_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_atr_3_S156_L008_R1_001.fastq.gz.out1.txt')
 
 
 # Applying the process file function to the file paths
@@ -217,7 +217,7 @@ ctrl_sample <- OS052ctrl13_log_scaled %>% filter(barcode %in% OS052_time_0_barco
 test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 
 
-# reassigning the test sample
+# Reassigning the test sample
 OS052_atr_final <- test_sample
 
 
@@ -303,9 +303,9 @@ ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
 
 
 # Reading in the PF barcodes
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_pf_1_S37_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_pf_2_S38_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052_gDNA_barcodes/text_files/052_pf_3_S39_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_1_S37_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_2_S38_L003_R1_001.fastq.gz.out2.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_3_S39_L003_R1_001.fastq.gz.out2.txt')
 
 
 # Combining the counts into a single file
@@ -348,6 +348,13 @@ OS052_pf_log_scaled <- OS052_pf_log_scaled %>%
   mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_pf_1_log", 
                                                     "barcode_count_pf_2_log", 
                                                     "barcode_count_pf_3_log"))))
+
+# Computing the mean per barcode for the merged dataframe
+OS052_pf_log_scaled <- OS052_pf_log_scaled %>% 
+  mutate(barcode_cpm_mean_pf = rowMeans(select(., c("barcode_count_pf_1_scaled", 
+                                                     "barcode_count_pf_2_scaled", 
+                                                     "barcode_count_pf_3_scaled"))))
+
 
 
 # filtering out the barcodes based on T0 barcodes
@@ -432,9 +439,6 @@ ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 3.3, he
 
 
 
-
-
-
 # pltting mean and median
 data_long <- pivot_longer(raw_counts_df, 
                           cols = starts_with("barcode_count"),
@@ -475,21 +479,13 @@ ggplot(data_long_summary, aes(x = condition, y = counts)) +
 
 
 
-
-
-
 ##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   #############
 
 
 
 
-
-# Concatenating the barcode lists and keeping the unique barcodes
-deplted_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
-
 # changing the barcode type to DNA in order to later take the reverse complement
 deplted_barcodes <- dna(deplted_barcodes)
-
 
 
 # getting the reverse complement of the top barcodes
@@ -510,7 +506,6 @@ enriched_barcodes <- dna(enriched_barcodes)
 rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
 rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
 write.csv(rc_enriched_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/enriched_barcodes_OS384_inVivo_LT.csv")
-
 
 
 # Reading in the fastq files for read 1 and read 2 to combine the reads from the scRNAseq data
