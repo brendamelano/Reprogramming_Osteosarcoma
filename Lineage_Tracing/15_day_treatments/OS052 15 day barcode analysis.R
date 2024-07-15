@@ -68,16 +68,19 @@ names(OS052_atr_merged)[1] <- 'barcode'
 
 # Creating a dataframe for the barcodes not in the white list
 # extra df is for hamming distance
-test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
-
-
-# Resetting the test sample to a OS052 name
-OS052_atr_merged <- test_sample
+# test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
+# test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+# 
+# 
+# # Resetting the test sample to a OS052 name
+# OS052_atr_merged <- test_sample
 
 
 # Getting a new list of barcodes with which to filter the dataframes
 merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'barcode'))
+
+
+# Removing rows that have NAs
 merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
 
 
@@ -174,6 +177,10 @@ test_sample <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 # Resetting the test sample to a OS052 name
 OS052_atr_merged <- test_sample
+
+
+# Filtering based on barcodes within both dataframes
+OS052_atr_merged <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
 
 
 # Performing cpm scaling with the function
@@ -303,9 +310,9 @@ ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
 
 
 # Reading in the PF barcodes
-file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_1_S37_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_2_S38_L003_R1_001.fastq.gz.out2.txt',
-                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_3_S39_L003_R1_001.fastq.gz.out2.txt')
+file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_1_S157_L008_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_2_S158_L008_R1_001.fastq.gz.out1.txt',
+                '~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/text_files/052_pf_3_S159_L008_R1_001.fastq.gz.out1.txt')
 
 
 # Combining the counts into a single file
@@ -320,8 +327,8 @@ OS052_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 colnames(OS052_pf_merged)[1] <- "barcode"
 
 
-# Creating a dataframe for the barcodes not in the white list
-OS052_pf_merged <- OS052_pf_merged %>% filter((barcode %in% merged_atr_barcodes))
+# 
+OS052_pf_merged <- OS052_pf_merged %>% filter((barcode %in% merged_pf_barcodes))
 
 
 # Scaling the data based on cpm
