@@ -86,20 +86,20 @@ OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_
 
 
 # Use ggplot to create the plot
-p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  rasterise(geom_point(), dpi = 300) + # Add rasterized points
-  scale_y_log10() + # Log scale for Y axis
-  labs(title = "OS384 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank(),
-        text = element_text(size = 10),
-        plot.title = element_text(size = 10)) # Remove minor grid lines
-
-
-# Save the plot as SVG with specified dimensions
-ggsave("~/Desktop/OS384_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
+# p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   rasterise(geom_point(), dpi = 300) + # Add rasterized points
+#   scale_y_log10() + # Log scale for Y axis
+#   labs(title = "OS384 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(panel.grid.major = element_blank(), # Remove major grid lines
+#         panel.grid.minor = element_blank(),
+#         text = element_text(size = 10),
+#         plot.title = element_text(size = 10)) # Remove minor grid lines
+# 
+# 
+# # Save the plot as SVG with specified dimensions
+# ggsave("~/Desktop/OS384_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
@@ -359,17 +359,15 @@ names(OS052_ctrl_0_scaled)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ct
 names(OS052_ctrl_0_scaled)[5:7] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
 
 
-# Computing logs of cpm values
-OS052ctrl0_log_scaled <- OS052_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
-OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
-OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
+# Computing the logs of the cpm values
+OS052ctrl0_log_scaled <- compute_log2_scaled(OS052_ctrl_0_scaled)
 
 
 # Computing the mean log value per barcode for the merged dataframe
 OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>% 
-  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_log", 
-                                                        "barcode_count_ctrl_0_2_log", 
-                                                        "barcode_count_ctrl_0_3_log"))))
+  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled_log", 
+                                                        "barcode_count_ctrl_0_2_scaled_log", 
+                                                        "barcode_count_ctrl_0_3_scaled_log"))))
 
 
 # Computing the mean of the cpm scaled values
@@ -413,6 +411,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
 
 
 # Defining a threshold for the standard deviation cutoff
+# Retry analysis with more stringent cutoff
 threshold <- 4500
 
 
@@ -455,7 +454,7 @@ first_two_replicates_052_D0
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
-OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 2)
+OS052ctrl0_filtered <- filtered_df %>% filter(barcode_cpm_mean_ctrl_0 > 3)
 
 
 # Renaming the barcode column

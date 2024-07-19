@@ -1,9 +1,9 @@
 library(stringdist)
+library(VennDiagram)
 library(stats)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-library(VennDiagram)
 library(ggpubr)
 library(tidyverse)
 #library(DESeq2)
@@ -39,12 +39,15 @@ OS052_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_lis
 names(OS052_ctrl_13_merged)[1] <- 'barcode'
 
 
-# Creating a dataframe for the barcodes not in the white list
-OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% OS052_time_0_barcodes))
+# Changing the column names for the scaled counts
+names(OS052_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", 
+                                      "barcode_count_ctrl_13_2", 
+                                      "barcode_count_ctrl_13_3")
 
 
 
-############   READING IN ATR SAMPLES     ##############
+
+############   ATR ANALYSIS     ##############
 
 
 
@@ -66,30 +69,34 @@ OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 names(OS052_atr_merged)[1] <- 'barcode'
 
 
+# Merging the control and treated counts
+OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_atr_merged, by='barcode')
+
+
 # Creating a dataframe for the barcodes not in the white list
-# extra df is for hamming distance
-# test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% OS052_time_0_barcodes))
-# test_sample <- OS052_atr_merged %>% filter((barcode %in% OS052_time_0_barcodes))
-# 
-# 
-# # Resetting the test sample to a OS052 name
-# OS052_atr_merged <- test_sample
+test_sample_extra <- OS052_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
+test_sample <- OS052_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 
 
-# Getting a new list of barcodes with which to filter the dataframes
-merged_atr_barcodes <- (left_join(OS052_atr_merged, OS052_ctrl_13_merged, by= 'barcode'))
+## hamming distance section ##
+# # Writing a for loop to add values from the extra values to the whitelist
+# for (barcode in 1:nrow(test_sample_extra)) {
+#   barcode_seq <- test_sample_extra$barcode[barcode]
+#   for (barcode_white in 1:nrow(test_sample)){
+#     barcode_white_seq <- test_sample$barcode[barcode_white]
+#     if (StrDist(barcode_seq, barcode_white_seq, method = "hamming") == 1){
+#       test_sample[barcode_white, 2:4] <- test_sample[barcode_white, 2:4] + test_sample_extra[barcode, 2:4]
+#     }
+#   }
+# }
 
 
-# Removing rows that have NAs
-merged_atr_barcodes <- na.omit(merged_atr_barcodes)$barcode
-
-
-# Filtering based on barcodes within both dataframes
-OS052_ctrl_13_merged <- OS052_ctrl_13_merged %>% filter((barcode %in% merged_atr_barcodes))
+# Reassigning the test sample
+OS052_atr_final <- test_sample
 
 
 # Performing cpm scaling with the function
-OS052_ctrl13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
+OS052_ctrl13_scaled <- cpm_scaling(OS052_atr_final)
 
 
 # Changing the column names for the scaled counts
@@ -124,6 +131,8 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
                                                         "barcode_count_ctrl_13_2_scaled", 
                                                         "barcode_count_ctrl_13_3_scaled"))))
 
+
+
 ## PLOTTING THE REPLICATES
 
 
@@ -154,39 +163,6 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 
-###############     ATR BARCODE ANALYSIS       ##################
-
-
-
-# Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_merged %>% filter(!(barcode %in% merged_atr_barcodes))
-test_sample <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
-
-
-# Writing a for loop to add values from the extra values to the whitelist
-# for (barcode in 1:nrow(test_sample_extra)) {
-#   barcode_seq <- test_sample_extra$barcode[barcode]
-#   for (barcode_white in 1:nrow(test_sample)){
-#     barcode_white_seq <- test_sample$barcode[barcode_white]
-#     if (StrDist(barcode_seq, barcode_white_seq, method = "hamming") == 1){
-#       test_sample[barcode_white, 2:4] <- test_sample[barcode_white, 2:4] + test_sample_extra[barcode, 2:4]
-#     }
-#   }
-# }
-
-
-# Resetting the test sample to a OS052 name
-OS052_atr_merged <- test_sample
-
-
-# Filtering based on barcodes within both dataframes
-OS052_atr_merged <- OS052_atr_merged %>% filter((barcode %in% merged_atr_barcodes))
-
-
-# Performing cpm scaling with the function
-OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
-
-
 # Changing the column names for the scaled counts
 names(OS052_atr_scaled)[2:4] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
 
@@ -215,21 +191,10 @@ OS052_atr_log_scaled <- OS052_atr_log_scaled %>%
                                                      "barcode_count_atr_3_scaled"))))
 
 
-# Filtering out the barcodes based on T0 barcodes
-test_sample <- OS052_atr_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
-ctrl_sample <- OS052ctrl13_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
-
-
-# merging the control and treated counts
-test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
-
 
 # Reassigning the test sample
 OS052_atr_final <- test_sample
 
-
-# Merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-OS052_atr_final <- merge(OS052_atr_final, OS052ctrl0_filtered, by = "barcode")
 
 
 
@@ -261,9 +226,6 @@ OS052_atr_final <- merge(OS052_atr_final, OS052ctrl0_filtered, by = "barcode")
 #ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
 
 
-# Filter the dataframe based on the barcodes
-filtered_data <- atr_diff_merged %>%
-  filter(barcode %in% LT_depleted_cluster_3)
 
 
 # Plot the data

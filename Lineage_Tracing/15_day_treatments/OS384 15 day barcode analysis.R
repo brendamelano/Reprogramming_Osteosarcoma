@@ -157,6 +157,7 @@ OS384_atr_log_scaled <- OS384_atr_log_scaled %>%
 
 OS384_atr_final <- OS384_atr_log_scaled
 
+names(OS384_atr_log_scaled)
 
 # Taking the difference of the log transformed values
 #atr_diff_merged <- OS384_atr_final %>% mutate(difference_atr_log2 = barcode_log_mean_ctrl_13 - barcode_mean_atr)
@@ -164,7 +165,7 @@ OS384_atr_final <- OS384_atr_log_scaled
 
 ### PLOTTING THE REPLICATES
 #Perform regression analysis
-model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_3_scaled_log, data = OS384_atr_log_scaled)
+model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_ctrl_13_1_scaled_log, data = OS384_atr_final)
 
 
 # Extract r-squared and p-value
@@ -172,20 +173,23 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot
-OS384_atr_replicate <- ggplot(OS384_atr_log_scaled, aes(barcode_count_384_atr_3_scaled_log, barcode_count_384_atr_1_scaled_log)) +
+OS384_atr_replicate <- ggplot(OS384_atr_final, aes(barcode_count_ctrl_13_1_scaled_log, barcode_count_384_atr_1_scaled_log)) +
   geom_point() +
   theme_bw() +
+  rasterise(geom_point(), dpi = 300) + # Add rasterized points
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title = element_text(size = 9),  # Change the font size for axis titles
         plot.title = element_text(size = 9)) +  # Change the font size for the main title
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 ATR Barcode Count Correlation") +
+  xlab("Log Transformed ctrl Barcode Count - Replicate 1") +
+  ylab("Log Transformed atr treated Barcode Count - Replicate 1") +
+  ggtitle("OS384 ATR Barcode ctrl/treated Count Correlation") +
   geom_text(x = min(OS384_atr_log_scaled$barcode_count_384_atr_3_scaled_log),
             y = max(OS384_atr_log_scaled$barcode_count_384_atr_1_scaled_log),
             label = paste("R-squared =", round(r_squared, 2), "\n"),
             hjust = 0, vjust = 1, parse = TRUE)
+
+OS384_atr_replicate
 
 
 # Save the plot as an SVG file
