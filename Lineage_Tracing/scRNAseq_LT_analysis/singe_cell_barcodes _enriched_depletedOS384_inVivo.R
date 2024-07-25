@@ -7,7 +7,7 @@ library(dplyr)
 ##### OS384   #########
 
 
-#####   Depleted barcodes   ##########
+#####   Depleted barcodes   ##
 
 
 # Reading in combined and trimmed fastq sequences
@@ -358,17 +358,7 @@ final_df <- tenX_cell_barcodes %>%
 #####   Depleted barcodes   ##########
 
 
-# Reading in combined and trimmed fastq sequences
-Fastq_sequences <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_LT_barcode_combined_sequences.txt", header = F)
-
-
-# reading in the depleted LT barcode sequences
-depleted_barcodes <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_barcodes_OS052_LT.csv")
-depleted_barcodes <- depleted_barcodes[,2]
-
-
-# filtering the fastq sequences based on the depleted barcode sequences
-filtered_fastqs <- dplyr::filter(Fastq_sequences, grepl(paste(depleted_barcodes, collapse="|"), V1))
+# The combined sequences take forever to load on Desktop. Load onto wynton and filter on there
 
 
 

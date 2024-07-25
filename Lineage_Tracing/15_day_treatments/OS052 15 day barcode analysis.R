@@ -1,5 +1,6 @@
-library(stringdist)
 library(VennDiagram)
+library(stringdist)
+library(tidyverse)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -7,7 +8,6 @@ library(tidyr)
 library(ggpubr)
 library(tidyverse)
 #library(DESeq2)
-library(tidyverse)
 library(mgcv) # GLMGAM regression
 library(purrr)
 library(ggplot2)
@@ -46,7 +46,6 @@ names(OS052_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1",
 
 
 
-
 ############   ATR ANALYSIS     ##############
 
 
@@ -74,8 +73,8 @@ OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_atr_merged, by='barcode')
 
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
-test_sample <- OS052_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
+test_sample_extra <- OS052_atr_ctrl13 %>% filter(!(barcode %in% OS052_time_0_barcodes))
+test_sample <- OS052_atr_ctrl13 %>% filter((barcode %in% OS052_time_0_barcodes))
 
 
 ## hamming distance section ##
@@ -91,28 +90,24 @@ test_sample <- OS052_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 # }
 
 
-# Reassigning the test sample
-OS052_atr_final <- test_sample
-
-
 # Performing cpm scaling with the function
-OS052_ctrl13_scaled <- cpm_scaling(OS052_atr_final)
+OS052_atr_final <- cpm_scaling(test_sample)
+
 
 
 # Changing the column names for the scaled counts
-names(OS052_ctrl13_scaled)[2:4] <- c("barcode_count_ctrl_13_1", 
-                                     "barcode_count_ctrl_13_2", 
-                                     "barcode_count_ctrl_13_3")
+names(OS052_atr_final)[5:7] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
 
 
-# Changing the colun names for the scaled counts
-names(OS052_ctrl13_scaled)[5:7] <- c("barcode_count_ctrl_13_1_scaled", 
-                                     "barcode_count_ctrl_13_2_scaled", 
-                                     "barcode_count_ctrl_13_3_scaled")
+
+# Changing the column names for the scaled counts
+names(OS052_atr_final)[11:13] <- c("barcode_count_atr_1_scaled", 
+                                     "barcode_count_atr_2_scaled", 
+                                     "barcode_count_atr_3_scaled")
 
 
 # Computing logs of cpm values
-OS052ctrl13_log_scaled <- OS052_ctrl13_scaled %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
+OS052ctrl13_log_scaled <- OS052_atr_final %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
 
@@ -123,13 +118,6 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
   mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
                                                          "barcode_count_ctrl_13_2_log", 
                                                          "barcode_count_ctrl_13_3_log"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
 
 
 
@@ -163,16 +151,8 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 
-# Changing the column names for the scaled counts
-names(OS052_atr_scaled)[2:4] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
-
-
-# Changing the column names for the scaled counts
-names(OS052_atr_scaled)[5:7] <- c("barcode_count_atr_1_scaled", "barcode_count_atr_2_scaled", "barcode_count_atr_3_scaled")
-
-
 # Computing logs of cpm values
-OS052_atr_log_scaled <- OS052_atr_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
+OS052_atr_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
 OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
 OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
 
@@ -191,9 +171,16 @@ OS052_atr_log_scaled <- OS052_atr_log_scaled %>%
                                                      "barcode_count_atr_3_scaled"))))
 
 
+# Computing the mean per barcode for the merged dataframe
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% 
+  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
+                                                     "barcode_count_ctrl_13_2_scaled", 
+                                                     "barcode_count_ctrl_13_3_scaled"))))
+
+
 
 # Reassigning the test sample
-OS052_atr_final <- test_sample
+OS052_atr_final <- OS052_atr_log_scaled
 
 
 
@@ -484,119 +471,117 @@ read2_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVi
 
 
 
-#######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
-
-
-
-
-# finding the barcodes that overlapped in selected barcodes for all samples
-venn.diagram(
-  x = list(cis_barcodes, pf_barcodes, atr_barcodes),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.svg',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-
-# Making a vector of the barcodes for all the treatments
-cis_barcodes_all <- OS384_cis_final$barcode
-pf_barcodes_all <- OS384_pf_final$barcode
-atr_barcodes_all <- OS384_atr_final$barcode
-
-
-# finding the barcodes that overlapped in selected barcodes for all samples
-venn.diagram(
-  x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.svg',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-venn.diagram(
-  x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.png',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-
-
-# carrying out hypergeometric test for overlapping barcodes of all drugs
-1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
-
-
-## checking correlation of z-score differences for different drugs
-
-#merge all data frames in list
-df_list_merged <- merge(z_score_diff_filtered_cis, z_score_diff_filtered_atr, by = 'barcode')
-df_list_merged <- merge(df_list_merged, z_score_diff_filtered_pf)
-
-
-# filtering the merged dataframe to only keep the columns that have the difference 
-difference_4_drugs <- df_list_merged[,c(1, grep("zscore", names(df_list_merged)))]
-
-
-# creating a scatter plot for the different drugs to see if the same barcodes are enriched or depleted with different drugs
-ggplot(difference_4_drugs, aes(x = log2_diff__zscore_cis, y = log2_diff__zscore_pf)) + 
-  geom_point() 
-scale_y_continuous(trans='log10') +
-  scale_x_continuous(trans='log10')
-
-
-### creating a list of the barcodes for dropouts based on log2 difference
-
-
-# pivoting the data
-dropout_barcodes_pivot <- difference_4_drugs %>%
-  pivot_longer(colnames(difference_4_drugs)[2:5]) %>%
-  as.data.frame()
-
-
-# plotting the barcodes that have the highest dropouts in all 4 samples
-ggplot(dropout_barcodes_pivot, aes(x = value)) + 
-  geom_histogram(bins = 200) +
-  facet_wrap(~ name) +
-  scale_x_continuous(trans='log10')
-
-
-# creating a list of the comparisons
-my_comparisons <- list( c("diference_atr, diference_cis"), c("diference_atr, diference_dox"), c("diference_atr, diference_pf") )
-
-
-#
-dropout_barcodes_pivot_filtered <- dropout_barcodes_pivot %>% filter(name %in% c("log2_diff_zscore_atr", "log2_diff_zscore_cis"))
-
-
-# desktop
-ggplot(dropout_barcodes_pivot_filtered, aes(x = name, y = value)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans='log10')  +
-  stat_compare_means() +
-  stat_compare_means() 
-
-
-ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans='log10')  +
-  stat_compare_means() +
-  stat_compare_means() 
-
-
-
-# creating a dataframe without the barcodes
-diff_only <- difference_4_drugs[,-1]
-
-
-
-
-
-
+# #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
+# 
+# 
+# # finding the barcodes that overlapped in selected barcodes for all samples
+# venn.diagram(
+#   x = list(cis_barcodes, pf_barcodes, atr_barcodes),
+#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
+#   filename = '~/Desktop/overlapping_barcodes.svg',
+#   output=TRUE,
+#   height = 2150,
+#   width = 2150,
+#   main = "OS384 Barcode Selection Overlap"
+# )
+# 
+# 
+# # Making a vector of the barcodes for all the treatments
+# cis_barcodes_all <- OS384_cis_final$barcode
+# pf_barcodes_all <- OS384_pf_final$barcode
+# atr_barcodes_all <- OS384_atr_final$barcode
+# 
+# 
+# # finding the barcodes that overlapped in selected barcodes for all samples
+# venn.diagram(
+#   x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
+#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
+#   filename = '~/Desktop/overlapping_barcodes.svg',
+#   output=TRUE,
+#   height = 2150,
+#   width = 2150,
+#   main = "OS384 Barcode Selection Overlap"
+# )
+# 
+# venn.diagram(
+#   x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
+#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
+#   filename = '~/Desktop/overlapping_barcodes.png',
+#   output=TRUE,
+#   height = 2150,
+#   width = 2150,
+#   main = "OS384 Barcode Selection Overlap"
+# )
+# 
+# 
+# 
+# # carrying out hypergeometric test for overlapping barcodes of all drugs
+# 1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
+# 
+# 
+# ## checking correlation of z-score differences for different drugs
+# 
+# #merge all data frames in list
+# df_list_merged <- merge(z_score_diff_filtered_cis, z_score_diff_filtered_atr, by = 'barcode')
+# df_list_merged <- merge(df_list_merged, z_score_diff_filtered_pf)
+# 
+# 
+# # filtering the merged dataframe to only keep the columns that have the difference 
+# difference_4_drugs <- df_list_merged[,c(1, grep("zscore", names(df_list_merged)))]
+# 
+# 
+# # creating a scatter plot for the different drugs to see if the same barcodes are enriched or depleted with different drugs
+# ggplot(difference_4_drugs, aes(x = log2_diff__zscore_cis, y = log2_diff__zscore_pf)) + 
+#   geom_point() 
+# scale_y_continuous(trans='log10') +
+#   scale_x_continuous(trans='log10')
+# 
+# 
+# ### creating a list of the barcodes for dropouts based on log2 difference
+# 
+# 
+# # pivoting the data
+# dropout_barcodes_pivot <- difference_4_drugs %>%
+#   pivot_longer(colnames(difference_4_drugs)[2:5]) %>%
+#   as.data.frame()
+# 
+# 
+# # plotting the barcodes that have the highest dropouts in all 4 samples
+# ggplot(dropout_barcodes_pivot, aes(x = value)) + 
+#   geom_histogram(bins = 200) +
+#   facet_wrap(~ name) +
+#   scale_x_continuous(trans='log10')
+# 
+# 
+# # creating a list of the comparisons
+# my_comparisons <- list( c("diference_atr, diference_cis"), c("diference_atr, diference_dox"), c("diference_atr, diference_pf") )
+# 
+# 
+# #
+# dropout_barcodes_pivot_filtered <- dropout_barcodes_pivot %>% filter(name %in% c("log2_diff_zscore_atr", "log2_diff_zscore_cis"))
+# 
+# 
+# # desktop
+# ggplot(dropout_barcodes_pivot_filtered, aes(x = name, y = value)) + 
+#   geom_boxplot() +
+#   scale_y_continuous(trans='log10')  +
+#   stat_compare_means() +
+#   stat_compare_means() 
+# 
+# 
+# ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) + 
+#   geom_boxplot() +
+#   scale_y_continuous(trans='log10')  +
+#   stat_compare_means() +
+#   stat_compare_means() 
+# 
+# 
+# 
+# # creating a dataframe without the barcodes
+# diff_only <- difference_4_drugs[,-1]
+# 
+# 
+# 
+# 
+# 
+# 

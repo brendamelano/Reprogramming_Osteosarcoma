@@ -1,13 +1,12 @@
 library(VennDiagram)
 library(tidyverse)
-library(dplyr)
 library(ggplot2)
-library(tidyr)
-library(ggpubr)
 library(ggrastr)
+library(ggpubr)
 library(statmod)
 library(bioseq)
-
+library(dplyr)
+library(tidyr)
 
 
 ###############     384 TIME 0 BARCODES       ##################
@@ -386,7 +385,7 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 
 
 
-# Rasterized points
+# Ranked barcode plot with rasterized points
 # plot <- ggplot(OS052ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
 #   geom_line() + # Draw lines
 #   rasterise(geom_point(), dpi = 300) + # Add rasterized points
@@ -420,37 +419,37 @@ filtered_df <- OS052ctrl0_log_scaled %>%
   filter(StdDev <= threshold)
 
 
-## Plotting replicates
-
-# Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = filtered_df)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot for replicate correlation in D0 control
-first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS052 Barcode Count Correlation") +
-  geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-            y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-            label = paste("R-squared =", round(r_squared, 2)),
-            hjust = 0, vjust = 1, parse = TRUE)
-
-first_two_replicates_052_D0
-
-# ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
-#        plot = first_two_replicates_052_D0, 
-#        device = "svg", 
-#        width = 4,  # Width in inches
-#        height = 4, # Height in inches
-#        dpi = 300)  # DPI, optional for SVG
+# ## Plotting replicates
+# 
+# # Perform regression analysis
+# model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = filtered_df)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot for replicate correlation in D0 control
+# first_two_replicates_052_D0 <- ggplot(filtered_df, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+#   xlab("Log Transformed Barcode Count - Replicate 1") +
+#   ylab("Log Transformed Barcode Count - Replicate 2") +
+#   ggtitle("OS052 Barcode Count Correlation") +
+#   geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+#             y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+#             label = paste("R-squared =", round(r_squared, 2)),
+#             hjust = 0, vjust = 1, parse = TRUE)
+# 
+# first_two_replicates_052_D0
+# 
+# # ggsave("~/Desktop/first_two_replicates_052_D0.svg", 
+# #        plot = first_two_replicates_052_D0, 
+# #        device = "svg", 
+# #        width = 4,  # Width in inches
+# #        height = 4, # Height in inches
+# #        dpi = 300)  # DPI, optional for SVG
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
@@ -466,31 +465,31 @@ OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
 
-###   Filtering barcodes for trajectory visualization   ###
-
-
-# getting the 10% quantiles
-#quantile(OS384_ctrl_0_unique$barcode_count_ctrl_0, probs = seq(0, 1, 0.1))
-
-
-# fitering the barcodes for those with a high count for trajectory analysis
-OS384_ctrl_0_trajectory <- OS384ctrl0_filtered %>% filter(barcode_mean_ctrl_0 > 10)
-
-
-# converting the barcodes to dna object in order to get the reverse complement
-OS384_barcodes_trajectory <- dna(OS384_ctrl_0_trajectory$barcode)
-
-
-# getting the reverse complement of the top barcodes
-rc_384_trajectory_barcodes <- seq_complement(seq_reverse(OS384_barcodes_trajectory))
-
-
-# creating a dataframe of the reverse complement of the barcodes that should be used to study trajectories
-OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
-
-
-# writing the csv to the single cell folder
-#write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
-
-
-
+# ###   Filtering barcodes for trajectory visualization   ###
+# 
+# 
+# # getting the 10% quantiles
+# #quantile(OS384_ctrl_0_unique$barcode_count_ctrl_0, probs = seq(0, 1, 0.1))
+# 
+# 
+# # fitering the barcodes for those with a high count for trajectory analysis
+# OS384_ctrl_0_trajectory <- OS384ctrl0_filtered %>% filter(barcode_mean_ctrl_0 > 10)
+# 
+# 
+# # converting the barcodes to dna object in order to get the reverse complement
+# OS384_barcodes_trajectory <- dna(OS384_ctrl_0_trajectory$barcode)
+# 
+# 
+# # getting the reverse complement of the top barcodes
+# rc_384_trajectory_barcodes <- seq_complement(seq_reverse(OS384_barcodes_trajectory))
+# 
+# 
+# # creating a dataframe of the reverse complement of the barcodes that should be used to study trajectories
+# OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
+# 
+# 
+# # writing the csv to the single cell folder
+# #write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
+# 
+# 
+# 
