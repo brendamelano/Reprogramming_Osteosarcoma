@@ -1,6 +1,7 @@
 library(VennDiagram)
 library(stringdist)
 library(tidyverse)
+library(ggplot2)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -10,7 +11,6 @@ library(tidyverse)
 #library(DESeq2)
 library(mgcv) # GLMGAM regression
 library(purrr)
-library(ggplot2)
 library(grid)
 library(png)
 #library(DescTools)
@@ -73,8 +73,8 @@ OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_atr_merged, by='barcode')
 
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_ctrl13 %>% filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_ctrl13 %>% filter((barcode %in% OS052_time_0_barcodes))
+test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))
+test_sample <- OS052_atr_ctrl13 %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
 
 
 ## hamming distance section ##
@@ -178,14 +178,12 @@ OS052_atr_log_scaled <- OS052_atr_log_scaled %>%
                                                      "barcode_count_ctrl_13_3_scaled"))))
 
 
-
 # Reassigning the test sample
 OS052_atr_final <- OS052_atr_log_scaled
 
 
 
-
-### PLOTTING THE REPLICATES
+### PLOTTING THE REPLICATES TO CHECK PRECISION
 
 # Perform regression analysis
 # model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
@@ -213,25 +211,16 @@ OS052_atr_final <- OS052_atr_log_scaled
 #ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
 
 
-
-
-# Plot the data
-ggplot(filtered_data, aes(x = barcode)) + 
-  geom_line(aes(y = barcode_log_mean_ctrl_13, color = "Control")) +
-  geom_line(aes(y = barcode_mean_atr, color = "Treatment")) +
-  labs(title = "Barcode Counts",
-       y = "Count",
-       color = "Condition") +
-  theme_minimal()
-
-
 ## General QC
 
-# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean'
-raw_counts_df <- OS384_atr_final %>%
+
+# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' and only keep the raw counts
+raw_counts_df <- OS052_atr_final %>%
   select(-contains("log"), -contains("scaled"), -contains("mean"))
 
+
 raw_counts_df <- raw_counts_df[,-1]
+
 
 # Compute the sum of each column
 sums <- colSums(raw_counts_df)
@@ -276,8 +265,17 @@ OS052_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 colnames(OS052_pf_merged)[1] <- "barcode"
 
 
-# 
-OS052_pf_merged <- OS052_pf_merged %>% filter((barcode %in% merged_pf_barcodes))
+# Merging the control and treated counts
+OS052_pf_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_pf_merged, by='barcode')
+
+
+# Creating a dataframe for the barcodes not in the white list
+test_sample_extra <- OS052_pf_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
+test_sample <- OS052_pf_ctrl13 %>% filter((barcode %in% time_0_barcodes))
+
+
+# Reassigning the test sample
+OS052_pf_merged <- test_sample
 
 
 # Scaling the data based on cpm
@@ -432,41 +430,6 @@ ggplot(data_long_summary, aes(x = condition, y = counts)) +
        x = "Condition",
        y = "Counts") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top") # Improve readability
-
-
-
-##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   #############
-
-
-
-
-# changing the barcode type to DNA in order to later take the reverse complement
-deplted_barcodes <- dna(deplted_barcodes)
-
-
-# getting the reverse complement of the top barcodes
-rc_depleted_barcodes <- seq_complement(seq_reverse(deplted_barcodes))
-
-
-# Creating a dataframe of the depleted barcodes
-rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
-
-
-# Writing the dropout barcodes to thw single cell analysis folder
-write.csv(rc_depleted_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/depleted_barcodes_OS384_inVivo_LT.csv")
-
-
-
-enriched_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
-enriched_barcodes <- dna(enriched_barcodes)
-rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
-rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
-write.csv(rc_enriched_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/enriched_barcodes_OS384_inVivo_LT.csv")
-
-
-# Reading in the fastq files for read 1 and read 2 to combine the reads from the scRNAseq data
-read1_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/384-in-vivo_S1_L001_R1_001.fastq")
-read2_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/384-in-vivo_S1_L001_R2_001.fastq")
 
 
 

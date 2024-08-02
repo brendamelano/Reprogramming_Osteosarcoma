@@ -395,34 +395,35 @@ ggplot(OS052_pf_final, aes(x=logFC, y=-log10(p_value))) +
 # Identifying the depleted and enriched barcodes
 # filtering based on log fold change to identify positive fold change
 depleted_filtered_atr <- OS052_atr_final %>% filter(logFC < -2.5 & p_value < 0.05)
+enriched_filtered_atr <- OS052_atr_final %>% dplyr::filter(logFC > 1 & p_value < 0.05)
 depleted_filtered_pf <- OS052_pf_final %>% filter(logFC < -1 & p_value < 0.05)
 
 
 
 # making a vector of the top dropout barcodes for all the treatments
 depleted_barcodes_atr <- depleted_filtered_atr$barcode
+enriched_filtered_atr <- enriched_filtered_atr$barcode
 depleted_barcodes_pf <- depleted_filtered_pf$barcode
 depleted_barcodes_both <- c(depleted_barcodes_atr, depleted_barcodes_pf)
 
 
 # changing the barcode type to DNA in order to later take the reverse complement
-depleted_barcodes <- dna(depleted_barcodes_atr)
-
-#rc_depleted_barcodes <- depleted_barcodes
+enriched_barcodes <- dna(enriched_filtered_atr)
 
 
 # Getting the reverse complement of the top barcodes
 rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
 
 
 # Creating a dataframe of the depleted barcodes
 rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
+rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
 
 
 # Writing the dropout barcodes to the single cell analysis folder as txt file to be uploaded onto wynton
-write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_atr_OS052_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
-
-
+write.table(rc_enriched_barcodes$rc_enriched_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/enriched_LT_barcodes_atr_OS052_LT.txt", quote = FALSE, 
+            row.names = FALSE, col.names = FALSE)
 
 
 

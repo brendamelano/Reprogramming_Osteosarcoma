@@ -157,11 +157,6 @@ OS384_atr_log_scaled <- OS384_atr_log_scaled %>%
 
 OS384_atr_final <- OS384_atr_log_scaled
 
-names(OS384_atr_log_scaled)
-
-# Taking the difference of the log transformed values
-#atr_diff_merged <- OS384_atr_final %>% mutate(difference_atr_log2 = barcode_log_mean_ctrl_13 - barcode_mean_atr)
-
 
 ### PLOTTING THE REPLICATES
 #Perform regression analysis

@@ -1,21 +1,57 @@
-library(flowCore)
+library(flowWorkspace)
 library(latticeExtra)
-library(ggcyto)
 library(tidyverse)
+library(flowCore)
+library(svglite)
+library(ggcyto)
+library(ggplot2)
 library(knitr)
 library(dplyr)
-library(flowWorkspace)
-library(svglite)
-library(ggplot2)
+library(CytoML)
 
 
-### OS8333
-
-# read in flow data from the FACS sort for OS384 and OS742 for the pilot LT experiment
-fs <- read.flowSet(path = "~/Desktop/23_06_12_052_833_pertur_seq_screen/OS833/", pattern = ".fcs", alter.names = T)
 
 
-# removing the .fcs suffix
+# Load example data
+data(GvHD)
+fs <- GvHD[1:2]
+gs <- GatingSet(fs)
+
+# Define a simple gate
+g <- polygonGate(filterId = "Singlets",
+                 "FSC-H" = c(400, 800, 800, 400),
+                 "SSC-H" = c(0, 200, 400, 200))
+
+# Add the gate to the GatingSet
+add(gs, g, parent = "root")
+
+# Extract data from the GatingHierarchy
+data <- getData(gs[[1]], "root")
+
+# Base R plot
+plot(exprs(data)[, "FSC-H"], exprs(data)[, "SSC-H"], pch = 20, col = rgb(0, 0, 0, 0.2), main = "Base R Plot")
+polygon(c(400, 800, 800, 400), c(0, 200, 400, 200), border = "red")
+
+# ggcyto plot
+plot <- ggcyto(gs[[1]], aes(x = `FSC-H`, y = `SSC-H`), subset = "root") + 
+  geom_hex(bins = 200) +
+  geom_gate(g) +
+  theme_bw()
+
+# Display the plot
+print(plot)
+
+
+
+
+###    OS833   ############
+
+
+# Read in flow data from the FACS sort for OS384 and OS742 for the pilot LT experiment
+fs <- read.flowSet(path = "~/Desktop/Reprogramming_Osteosarcoma/FACS_analysis/Perturb_seq/23_06_12_052_833_pertur_seq_screen/OS833/", pattern = ".fcs", alter.names = T)
+
+
+# Removing the .fcs suffix
 pData(fs)$well <- gsub(".fcs","", sampleNames(fs)) 
 
 
@@ -23,14 +59,17 @@ pData(fs)$well <- gsub(".fcs","", sampleNames(fs))
 colnames(fs)[colnames(fs) == "Pacific.Blue.A"] <- "BFP"
 
 
-# converting the flowset object to a gating set object
+# Converting the flowset object to a gating set object
 gs <- GatingSet(fs)
 
 
 # defining the gate for singlets
 # this is manual gating, try non-manual as well (high and low)
-g.singlets <- polygonGate(filterId = "Singlets","FSC.A"= c(1.4e4,16e4,14e4,.5e4),
+g.singlets <- polygonGate(filterId = "Singlets",
+                          "FSC.A"= c(1.4e4,16e4,14e4,.5e4),
                           "FSC.H"=c(0.9e4,10e4,15e4,1.5e4)) 
+
+
 
 
 # checking where the gate plots
@@ -42,6 +81,7 @@ ggcyto(gs[[1]], aes(x=FSC.A, y=FSC.H), subset="root") +
   ggcyto_par_set(limits = "instrument") 
    #+
 #geom_point(color="blue", shape=18 ,size=8)
+
 
 
 # add gate to GatingSet
@@ -80,11 +120,11 @@ ggcyto(gs[[1]],aes(x=FSC.A,y=SSC.A),subset="Singlets") +
   theme_bw()
 
 
-# adding the live gate to the gating set
+# Adding the live gate to the gating set
 gs_pop_add(gs,g.live,parent="Singlets") 
 
 
-# recompute GatingSet
+# Recompute GatingSet
 recompute(gs) 
 
 
@@ -99,14 +139,18 @@ ggcyto(gs,aes(x=FSC.A,y=SSC.A),subset="Singlets") +
 # set gate
 g.gfp <- rectangleGate(filterId="BFP positive","BFP"=c(100, Inf)) 
 
+
 # Changing the pacific blue color to BFP
 colnames(gs)[colnames(gs) == "Pacific.Blue.A"] <- "BFP"
+
 
 # adding the gfp gate
 gs_pop_add(gs, g.gfp,parent="Live") 
 # add gate to GatingSet
 
+
 colnames(gs)
+
 
 # checking the gate
 ggcyto(gs[[1]], aes(x=BFP), subset="Live") +
@@ -133,7 +177,6 @@ ggcyto(gs,aes(x=BFP),subset="Live") +
   geom_stats(size = 3,  color = "red", adjust = 0.6, label.format = function(x) sprintf("%.2f%%", x * 100))
 
 
-
 # Calculate statistics outside the plot
 stats <- ggcyto(gs, aes(x = BFP), subset = "Live") +
   geom_density(fill = "forestgreen") +
@@ -149,6 +192,7 @@ label_df <- data.frame(
   well = rep(levels(gs$well), each = 1),  # Replace `gs$well` with appropriate column name
   label = round(runif(length(levels(gs$well))), 2)  # Replace `gs$well` with appropriate column name
 )
+
 
 # Plot with custom labels
 stats +
@@ -175,6 +219,7 @@ ggcyto(gs, aes(x = BFP), subset = "Live") +
 ggcyto(gs, aes(x = BFP), subset = "Live") + 
   geom_density(aes(y = ..count..)) + 
   geom_gate("BFP positive") + facet_null()
+
 
 fs_ctrl <- gs_pop_get_data(gs[1], "Live")
 fs_LT <- gs_pop_get_data(gs[2], "Live")
@@ -222,6 +267,7 @@ ggplot() +
 # Create a new column to indicate the condition (control or transduced)
 gs$condition <- ifelse(gs$sample == "ctrl", "Control", "Transduced")
 
+
 # Combine the data from control and transduced samples into a single data frame
 combined_data <- rbind(
   subset(gs, sample == "ctrl"),
@@ -231,9 +277,10 @@ combined_data <- rbind(
 
 ps <- gs_pop_get_count_with_meta(gs)
 
+
 ps <- ps %>% mutate(percent_of_parent=Count/ParentCount)
 ps %>% select(sampleName,well,Population,Count,ParentCount,percent_of_parent) %>% head() %>% kable
 
 
-### OS052
+###  OS052     #########
 
