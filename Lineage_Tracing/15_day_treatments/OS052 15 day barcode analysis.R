@@ -2,12 +2,12 @@ library(VennDiagram)
 library(stringdist)
 library(tidyverse)
 library(ggplot2)
+library(tidyverse)
 library(stats)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(ggpubr)
-library(tidyverse)
 #library(DESeq2)
 library(mgcv) # GLMGAM regression
 library(purrr)
@@ -44,6 +44,13 @@ names(OS052_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1",
                                       "barcode_count_ctrl_13_2", 
                                       "barcode_count_ctrl_13_3")
 
+# Performing cpm scaling with the function
+OS052_ctrl_13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
+
+OS052_ctrl_13_scaled <- OS052_ctrl_13_scaled %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
+
+
+
 
 
 ############   ATR ANALYSIS     ##############
@@ -64,17 +71,23 @@ result_list <- lapply(file_paths, process_file)
 OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
+# Changing the column names for the scaled counts
+names(OS052_atr_merged)[2:4] <- c("barcode_count_atr_1", 
+                                      "barcode_count_atr_2", 
+                                      "barcode_count_atr_3")
+
 # Renaming the first column to barcode
 names(OS052_atr_merged)[1] <- 'barcode'
 
 
-# Merging the control and treated counts
-OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_atr_merged, by='barcode')
+# Performing cpm scaling with the function
+OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
 
+OS052_atr_scaled <- OS052_atr_scaled %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))
-test_sample <- OS052_atr_ctrl13 %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
+#test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))
+#test_sample <- OS052_atr_ctrl13 %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
 
 
 ## hamming distance section ##
@@ -90,34 +103,26 @@ test_sample <- OS052_atr_ctrl13 %>% dplyr::filter((barcode %in% OS052_time_0_bar
 # }
 
 
-# Performing cpm scaling with the function
-OS052_atr_final <- cpm_scaling(test_sample)
 
 
+# Merging the control and treated counts
+OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_scaled, OS052_atr_scaled, by='barcode')
 
-# Changing the column names for the scaled counts
-names(OS052_atr_final)[5:7] <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
-
-
-
-# Changing the column names for the scaled counts
-names(OS052_atr_final)[11:13] <- c("barcode_count_atr_1_scaled", 
-                                     "barcode_count_atr_2_scaled", 
-                                     "barcode_count_atr_3_scaled")
 
 
 # Computing logs of cpm values
-OS052ctrl13_log_scaled <- OS052_atr_final %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
+OS052ctrl13_log_scaled <- OS052_atr_ctrl13 %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
 
 
 
 # Computing the mean control log per barcode for the merged dataframe
-OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% 
-  mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log", 
-                                                         "barcode_count_ctrl_13_2_log", 
-                                                         "barcode_count_ctrl_13_3_log"))))
+OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
+   mutate(barcode_log_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_log",
+                                                          "barcode_count_ctrl_13_2_log",
+                                                          "barcode_count_ctrl_13_3_log"))))
+
 
 
 

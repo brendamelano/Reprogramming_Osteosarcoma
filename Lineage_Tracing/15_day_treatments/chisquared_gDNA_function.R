@@ -340,7 +340,7 @@ ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
   #xlim(-2.5, 2.5)
 
 
-## PF
+##### PF    ###
 
 # Initialize empty dataframe to store results
 p_values <- data.frame(barcode = character(), p_value = numeric())
