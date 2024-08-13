@@ -39,7 +39,7 @@ fc_cutoff <- 1
 volcano_plot <- ggplot(OS384_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 Atr-i treatment", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 ATR inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -327,20 +327,25 @@ fc_cutoff <- 1
 
 
 # Create the volcano plot
-ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
+volcano_plot <- ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS052 ATR inhibitor Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS052 ATR inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
-  theme(panel.grid.major = element_blank(),  # Remove major gridlines
-        panel.grid.minor = element_blank()) +
-  #ylim(0, 8) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 8.5)) + 
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray")# +
-  #xlim(-2.5, 2.5)
+  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
+  ylim(0, 30)
+
+
+# Save the plot
+ggsave("~/Desktop/OS052_atr_volcano_plot.svg", plot = volcano_plot, width = 2.2, height = 2.2, units = "in")
 
 
 ##### PF    ###
+
 
 # Initialize empty dataframe to store results
 p_values <- data.frame(barcode = character(), p_value = numeric())
@@ -355,6 +360,7 @@ barcode_col <- "barcode"
 test_cols <- c("barcode_count_pf_1", "barcode_count_pf_2", "barcode_count_pf_3")
 ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
+
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS052_pf_final, barcode_col, test_cols, ctrl_cols)
 
@@ -366,26 +372,27 @@ OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
 # test difference of logs as well
-OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_cpm_mean_pf / OS052_pf_final$barcode_mean_ctrl13_cpm)
+OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_cpm_mean_pf / OS052_pf_final$barcode_cpm_mean_ctrl_13)
 
-
-# Set significance level and fold change cutoffs
-sig_level <- 0.05
-fc_cutoff <- 1
 
 
 # Create the volcano plot
-ggplot(OS052_pf_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+OS052_PF_volcano <- ggplot(OS052_pf_final, aes(x=logFC, y=-log10(p_value))) +
+  geom_point(size=0.5, aes(color=ifelse(p_value< 0.05 & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS052 PF inhibitor Treated Barcode Fold change", x="logFC", y="-log10(p-value)") +
+  labs(title="OS052 CDK-4/6 inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
-  theme(panel.grid.major = element_blank(),  # Remove major gridlines
-        panel.grid.minor = element_blank()) +
-  #ylim(0, 8) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 8.5)) + 
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray")# +
-#xlim(-2.5, 2.5)
+  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
+  ylim(0, 30)
+
+
+# Saving the PF plot
+ggsave("~/Desktop/OS052_PF_volcano.svg", plot = OS052_PF_volcano, width = 2.2, height = 2.2, units = "in")
+
 
 
 ##
@@ -509,22 +516,6 @@ venn.diagram(
 1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
 
 
-## checking correlation of z-score differences for different drugs
-
-#merge all data frames in list
-df_list_merged <- merge(z_score_diff_filtered_cis, z_score_diff_filtered_atr, by = 'barcode')
-df_list_merged <- merge(df_list_merged, z_score_diff_filtered_pf)
-
-
-# filtering the merged dataframe to only keep the columns that have the difference 
-difference_4_drugs <- df_list_merged[,c(1, grep("zscore", names(df_list_merged)))]
-
-
-# creating a scatter plot for the different drugs to see if the same barcodes are enriched or depleted with different drugs
-ggplot(difference_4_drugs, aes(x = log2_diff__zscore_cis, y = log2_diff__zscore_pf)) + 
-  geom_point() 
-scale_y_continuous(trans='log10') +
-  scale_x_continuous(trans='log10')
 
 
 ### creating a list of the barcodes for dropouts based on log2 difference

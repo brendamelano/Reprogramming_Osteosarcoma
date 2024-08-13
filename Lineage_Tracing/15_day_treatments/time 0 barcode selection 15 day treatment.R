@@ -9,6 +9,7 @@ library(dplyr)
 library(tidyr)
 
 
+
 ###############     384 TIME 0 BARCODES       ##################
 
 
@@ -26,39 +27,16 @@ result_list <- lapply(file_paths, process_file)
 # Merging the data frames by 'V1'
 OS384_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
+# Renaming the count columns
+names(OS384_ctrl_0_merged)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
+
 
 # Performing cpm scaling
-#OS384_ctrl_0_scaled <- cpm_scaling(OS384_ctrl_0_merged)
+OS384_ctrl_0_scaled <- cpm_scaling(OS384_ctrl_0_merged)
 
 
-# Compute the sum of each column
-sums <- colSums(OS384_ctrl_0_merged[2:4])
-
-
-# Dividing the sum by 1 million to get the scaling factor for cpm
-scaling_factor <- sums / 1000000
-
-
-# Renaming the merged dataframe before scaling it
-df <- OS384_ctrl_0_merged
-
-
-# Divide each value in the data frame by its corresponding scaling factor
-for (i in 2:ncol(df)) {
-  df[, i] <- df[, i] / scaling_factor[i - 1]
-}
-
-
-# Renaming the columns
-names(df)[2:4] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
-
-
-# Merging the counts with the scaled counts
-OS384ctrl0_merged <- merge(OS384_ctrl_0_merged, df, by = "V1")
-
-  
 # Computing logs of cpm values
-OS384ctrl0_log_scaled <- OS384ctrl0_merged %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
+OS384ctrl0_log_scaled <- OS384_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
 
@@ -386,7 +364,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
 
-# filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
+# Filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS052ctrl0_filtered <- OS052ctrl0_log_scaled %>% dplyr::filter(barcode_cpm_mean_ctrl_0 > 80)
 
 

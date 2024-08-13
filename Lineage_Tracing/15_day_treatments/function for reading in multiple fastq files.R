@@ -27,6 +27,23 @@ process_file <- function(file_path) {
   return(data_summary)
 }
 
+process_and_filter_barcodes <- function(input_df, sample_name, time_0_barcodes) {
+  
+  # Renaming the first column to 'barcode'
+  names(input_df)[1] <- 'barcode'
+  
+  # Changing the column names for the scaled counts based on the sample name
+  for (i in 1:3) {
+    names(input_df)[i + 1] <- paste0("barcode_count_", sample_name, "_", i)
+  }
+  
+  # Filtering based on the time 0 barcodes
+  filtered_df <- input_df %>% dplyr::filter(barcode %in% time_0_barcodes)
+  
+  return(filtered_df)
+}
+
+
 
 # Creating a function to compute scaled values of merged dataframe
 cpm_scaling <- function(merged_df) {
@@ -106,62 +123,3 @@ compute_chisq_test <- function(df, barcode_col, test_cols, ctrl_cols) {
   
   return(p_values)
 }
-
-# 
-# # Cell ID columns should be in the first column labeled V1 
-# ctrl_barcode_analysis <- function(ctrl_sample, time_0_barcodes){
-#   
-#   # changing the barcode to a categorical variable
-#   ctrl_sample[['barcode']] <- as.factor(ctrl_sample[['barcode']])
-#   
-#   
-#   # counting the unique barcode counts for the control condition
-#   ctrl_sample <- ctrl_sample %>%
-#     # grouping the samples by barcode
-#     group_by(barcode) %>%
-#     # summarizing the 
-#     summarize("barcode_count_ctrl_15" = n())
-#   
-#   # filtering out the barcodes based on T0 barcodes
-#   ctrl_sample <- ctrl_sample %>% filter(barcode %in% time_0_barcodes)
-#   
-#   # returning the ctrl dataframe
-#   return(ctrl_sample)
-#   
-# }
-# 
-# 
-# # function to prep the data for the test condition
-# # Cell ID columns should be in the first column labeled V1 
-# test_barcode_analysis <- function(test_sample, time_0_barcodes, ctrl_sample){
-#   
-#   # changing the barcode to a categorical variable
-#   test_sample[['barcode']] <- as.factor(test_sample[['barcode']])
-#   
-#   # counting the unique barcode counts for the control condition
-#   test_sample <- test_sample %>%
-#     group_by(barcode) %>%
-#     summarize("barcode_count_test" = n())
-#   
-#   # filtering out the barcodes based on T0 barcodes
-#   test_sample <- test_sample %>% filter(barcode %in% time_0_barcodes)
-#   
-#   # merging the control and treated counts
-#   test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
-#   
-#   # Log2 scaling the test counts
-#   test_sample <- test_sample %>% mutate(test_log2 = log2(barcode_count_test))
-#   
-#   # Log2 scaling the ctrl 6 counts
-#   test_sample <- test_sample %>% mutate(ctrl_15_log2 = log2(barcode_count_ctrl_15))
-#   
-#   # returning the test sample dataframe
-#   return(test_sample)
-#   
-# }
-# 
-# 
-# 
-#   
-# 
-# 

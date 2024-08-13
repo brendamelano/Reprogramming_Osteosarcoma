@@ -6,8 +6,8 @@ library(ggpubr)
 library(stats)
 library(dplyr)
 library(tidyr)
-library(mgcv) # GLMGAM regression
 library(purrr)
+library(mgcv) # GLMGAM regression
 library(grid)
 library(png)
 #library(DescTools)

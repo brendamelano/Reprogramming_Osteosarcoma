@@ -35,21 +35,12 @@ result_list <- lapply(file_paths, process_file)
 OS052_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Renaming the first column to barcode
-names(OS052_ctrl_13_merged)[1] <- 'barcode'
+# Example usage:
+OS052_ctrl_13_merged <- process_and_filter_barcodes(OS052_ctrl_13_merged, "ctrl_13", OS052_time_0_barcodes)
 
-
-# Changing the column names for the scaled counts
-names(OS052_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", 
-                                      "barcode_count_ctrl_13_2", 
-                                      "barcode_count_ctrl_13_3")
 
 # Performing cpm scaling with the function
 OS052_ctrl_13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
-
-OS052_ctrl_13_scaled <- OS052_ctrl_13_scaled %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
-
-
 
 
 
@@ -71,19 +62,13 @@ result_list <- lapply(file_paths, process_file)
 OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Changing the column names for the scaled counts
-names(OS052_atr_merged)[2:4] <- c("barcode_count_atr_1", 
-                                      "barcode_count_atr_2", 
-                                      "barcode_count_atr_3")
-
-# Renaming the first column to barcode
-names(OS052_atr_merged)[1] <- 'barcode'
+#
+OS052_atr_merged <- process_and_filter_barcodes(OS052_atr_merged, "atr", OS052_time_0_barcodes)
 
 
 # Performing cpm scaling with the function
 OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
 
-OS052_atr_scaled <- OS052_atr_scaled %>% dplyr::filter((barcode %in% OS052_time_0_barcodes))
 
 # Creating a dataframe for the barcodes not in the white list
 #test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))
@@ -103,8 +88,6 @@ OS052_atr_scaled <- OS052_atr_scaled %>% dplyr::filter((barcode %in% OS052_time_
 # }
 
 
-
-
 # Merging the control and treated counts
 OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_scaled, OS052_atr_scaled, by='barcode')
 
@@ -115,6 +98,12 @@ OS052ctrl13_log_scaled <- OS052_atr_ctrl13 %>% mutate(barcode_count_ctrl_13_1_lo
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
 
+
+
+# Computing logs of cpm values
+OS052_atr_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
+OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
 
 
 # Computing the mean control log per barcode for the merged dataframe
@@ -154,12 +143,6 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 # # Save the plot as an SVG file
 # ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device = "svg")
 
-
-
-# Computing logs of cpm values
-OS052_atr_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_atr_1_log = log2(barcode_count_atr_1_scaled))
-OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_2_log = log2(barcode_count_atr_2_scaled))
-OS052_atr_log_scaled <- OS052_atr_log_scaled %>% mutate(barcode_count_atr_3_log = log2(barcode_count_atr_3_scaled))
 
 
 # Computing the mean per barcode for the merged dataframe
@@ -266,37 +249,20 @@ result_list <- lapply(file_paths, process_file)
 OS052_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Changing the barcode column name
-colnames(OS052_pf_merged)[1] <- "barcode"
-
-
-# Merging the control and treated counts
-OS052_pf_ctrl13 <-  merge(OS052_ctrl_13_merged, OS052_pf_merged, by='barcode')
-
-
-# Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS052_pf_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
-test_sample <- OS052_pf_ctrl13 %>% filter((barcode %in% time_0_barcodes))
-
-
-# Reassigning the test sample
-OS052_pf_merged <- test_sample
+# Filtering barcodes based on whitelist
+OS052_pf_merged <- process_and_filter_barcodes(OS052_pf_merged, "pf", OS052_time_0_barcodes)
 
 
 # Scaling the data based on cpm
 OS052_pf_scaled <- cpm_scaling(OS052_pf_merged)
 
 
-# Renaming the count columns
-names(OS052_pf_scaled)[2:4] <- c("barcode_count_pf_1", "barcode_count_pf_2", "barcode_count_pf_3")
-
-
-# Renaming the columns with scaled values
-names(OS052_pf_scaled)[5:7] <- c("barcode_count_pf_1_scaled", "barcode_count_pf_2_scaled", "barcode_count_pf_3_scaled")
+# Merging the control and treated counts
+OS052_pf_ctrl13 <-  merge(OS052_ctrl_13_scaled, OS052_pf_scaled, by='barcode')
 
 
 # Computing logs of cpm values
-OS052_pf_log_scaled <- OS052_pf_scaled %>% mutate(barcode_count_pf_1_log = log2(barcode_count_pf_1_scaled))
+OS052_pf_log_scaled <- OS052_pf_ctrl13 %>% mutate(barcode_count_pf_1_log = log2(barcode_count_pf_1_scaled))
 OS052_pf_log_scaled <- OS052_pf_log_scaled %>% mutate(barcode_count_pf_2_log = log2(barcode_count_pf_2_scaled))
 OS052_pf_log_scaled <- OS052_pf_log_scaled %>% mutate(barcode_count_pf_3_log = log2(barcode_count_pf_3_scaled))
 
@@ -315,21 +281,18 @@ OS052_pf_log_scaled <- OS052_pf_log_scaled %>%
                                                      "barcode_count_pf_3_scaled"))))
 
 
+OS052_pf_log_scaled <- OS052_pf_log_scaled %>% 
+  mutate(barcode_cpm_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
+                                                    "barcode_count_ctrl_13_2_scaled", 
+                                                    "barcode_count_ctrl_13_3_scaled"))))
 
-# filtering out the barcodes based on T0 barcodes
-test_sample <- OS052_pf_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
-ctrl_sample <- OS052ctrl13_log_scaled %>% filter(barcode %in% OS052_time_0_barcodes)
 
-
-# merging the control and treated counts
-test_sample <-  merge(ctrl_sample, test_sample, by='barcode')
 
 
 # Reassigning the test_sample
-OS052_pf_final <- test_sample
+OS052_pf_final <- OS052_pf_log_scaled
 
 
-#test_sample <- OS384_pf
 
 
 # running the function
