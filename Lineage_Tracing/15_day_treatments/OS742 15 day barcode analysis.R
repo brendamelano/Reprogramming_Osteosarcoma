@@ -14,7 +14,8 @@ library(DescTools)
 library(ggplot2)
 library(grid)
 library(png)
-
+library(ggrastr)
+library(stringr)
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -34,10 +35,12 @@ result_list <- lapply(file_paths, process_file)
 # Merging the data frames by 'V1'
 OS742_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
+# Example usage:
+OS742_ctrl_13_merged <- process_and_filter_barcodes(OS742_ctrl_13_merged, "ctrl_13", OS742_time_0_barcodes)
 
 
-# Renaming the columns with the raw values
-names(OS742_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
+# Performing cpm scaling with the function
+OS742_ctrl_13_scaled <- cpm_scaling(OS742_ctrl_13_merged)
 
 
 ## PLOTTING THE REPLICATES
@@ -118,33 +121,28 @@ file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_c
 # Combining all of the barcode dataframes
 result_list <- lapply(file_paths, process_file)
 
-
-# Merging the data frames by 'V1'
+# # Merging the data frames by 'V1'
 OS742_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
+# 
+# 
 
-
-# Merging the control and treated counts
-OS742_pf_ctrl13 <-  merge(OS742_ctrl_13_merged, OS742_pf_merged, by='V1')
-
-
-# Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS742_pf_ctrl13 %>% filter(!(V1 %in% OS742_time_0_barcodes))
-test_sample <- OS742_pf_ctrl13 %>% filter((V1 %in% OS742_time_0_barcodes))
-
-
-# Reassigning the test sample
-OS742_pf_final <- test_sample
+#
+OS742_pf_merged <- process_and_filter_barcodes(OS742_pf_merged, "pf", OS742_time_0_barcodes)
 
 
 # Performing cpm scaling with the function
-OS742_pf_scaled <- cpm_scaling(OS742_pf_final)
+OS742_pf_scaled <- cpm_scaling(OS742_pf_merged)
 
+# Merging the control and treated counts
+OS742_pf_ctrl13 <-  merge(OS742_ctrl_13_scaled, OS742_pf_scaled, by='barcode')
 
 # 
-OS742_pf_log_scaled <- compute_log2_scaled(OS742_pf_scaled)
+OS742_pf_ctrl13 <- compute_log2_scaled(OS742_pf_ctrl13)
 
 
 names(OS742_pf_log_scaled)
+
+
 
 # Computing the mean per barcode for the merged dataframe
 OS742_pf_log_scaled <- OS742_pf_log_scaled %>% 
@@ -160,7 +158,7 @@ OS742_pf_log_scaled <- OS742_pf_log_scaled %>%
                                                         "barcode_count_ctrl_13_3_scaled"))))
 
 
-
+OS742_pf_final <- OS742_pf_log_scaled
 
 ## PLOTTING THE REPLICATES
 
@@ -232,20 +230,6 @@ OS742_pf_log_scaled <- OS742_pf_log_scaled %>%
 
 
 
-
-# merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-pf_diff_ordered <- merge(pf_diff_ordered, OS384_ctrl_0_unique, by = "barcode")
-
-
-# merging atr_diff_ordered with ctrl day 0 barcode counts
-pf_diff_ordered <- merge(pf_diff_ordered, OS384_ctrl_0_unique, by = "barcode")
-
-
-# plotting 
-
-ggplot(pf_diff_ordered, aes(x = barcode_count_ctrl_0.y , y = log2_diff_zscore_pf )) + 
-  geom_point() +
-  scale_x_continuous(trans='log10')
 
 
 

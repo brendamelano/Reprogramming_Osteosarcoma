@@ -14,7 +14,8 @@ library(purrr)
 library(grid)
 library(png)
 #library(DescTools)
-
+library(ggrastr)
+library(stringr)
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -62,13 +63,12 @@ result_list <- lapply(file_paths, process_file)
 OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-#
+# Example usage:
 OS052_atr_merged <- process_and_filter_barcodes(OS052_atr_merged, "atr", OS052_time_0_barcodes)
 
 
 # Performing cpm scaling with the function
 OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
-
 
 # Creating a dataframe for the barcodes not in the white list
 #test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))
@@ -199,35 +199,6 @@ OS052_atr_final <- OS052_atr_log_scaled
 #ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
 
 
-## General QC
-
-
-# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' and only keep the raw counts
-raw_counts_df <- OS052_atr_final %>%
-  select(-contains("log"), -contains("scaled"), -contains("mean"))
-
-
-raw_counts_df <- raw_counts_df[,-1]
-
-
-# Compute the sum of each column
-sums <- colSums(raw_counts_df)
-
-sums_df <- data.frame(
-  sample_type = names(sums),
-  total_sum = sums
-)
-
-
-# Plotting the sums
-# Plotting the total sums of counts for each sample column
-
-
-ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
-  geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title = "Total Sums of Counts per Sample Type", x = "Sample Type", y = "Total Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate X labels for readability
 
 
 
@@ -295,23 +266,7 @@ OS052_pf_final <- OS052_pf_log_scaled
 
 
 
-# running the function
-#OS384_pf <- test_barcode_analysis(test_sample, time_0_barcodes)
-
-## Finishing the run of the function
-
-
-# merging atr_diff_ordered with ctrl day 0 barcode counts by barcode
-pf_diff_ordered <- merge(pf_diff_ordered, OS384_ctrl_0_unique, by = "barcode")
-
-
-# merging atr_diff_ordered with ctrl day 0 barcode counts
-
-pf_diff_ordered <- merge(pf_diff_ordered, OS384_ctrl_0_unique, by = "barcode")
-
-
-
-######  QC analysis for all treatments together  ########
+######  QC analysis for all treatments together  ###
 
 
 
@@ -321,6 +276,7 @@ raw_counts_df_pf <- OS052_pf_final %>%
          -contains("mean"), -contains("StdDev"), -contains("Index"))
 
 
+# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' from the atr dataset
 raw_counts_df_atr <- OS052_atr_final %>%
   select(-contains("log"), -contains("scaled"), 
          -contains("mean"), -contains("StdDev"), -contains("Index"))
@@ -343,6 +299,14 @@ sums_df <- data.frame(
   total_sum = sums
 )
 
+# Modify the sample_type to remove "barcode_count_" and underscores
+sums_df$sample_type <- gsub("barcode_count_", "", sums_df$sample_type)
+sums_df$sample_type <- gsub("ctrl_13", "ctrl-D13", sums_df$sample_type)
+sums_df$sample_type <- gsub("_", " ", sums_df$sample_type)
+
+
+# Order the factor levels so that control samples appear first
+sums_df$sample_type <- factor(sums_df$sample_type, levels = sort(unique(sums_df$sample_type), decreasing = TRUE))
 
 # Create the plot
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
@@ -361,7 +325,9 @@ ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 3.3, he
 
 
 
-# pltting mean and median
+### Plotting mean and median
+
+
 data_long <- pivot_longer(raw_counts_df, 
                           cols = starts_with("barcode_count"),
                           names_to = "condition",
@@ -387,17 +353,35 @@ data_long_summary <- merge(data_long, summary_data, by = "condition")
 
 
 # Plotting
-ggplot(data_long_summary, aes(x = condition, y = counts)) +
-  geom_jitter(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Actual data points
+# Adjust x-axis labels
+data_long_summary$condition <- data_long_summary$condition %>%
+  str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
+  str_replace_all("_", " ") %>% # Replace underscores with spaces
+  str_replace("ctrl 13", "Ctrl Day-13") # Change "ctrl 13" to "Ctrl Day-13"
+
+
+
+# Plot
+p <- ggplot(data_long_summary, aes(x = condition, y = counts)) +
+  geom_jitter_rast(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Rasterized data points
   geom_errorbar(aes(ymin = lower, ymax = upper, x = condition), width = 0.2) + # Error bars
-  geom_point(aes(y = mean, color = "Mean"), size = 3) + # Mean points
-  geom_line(aes(y = median, group = condition, color = "Median"), size = 1) + # Optional: Line for median
-  scale_color_manual("", values = c("Data Points" = "black", "Mean" = "red", "Median" = "blue")) +
-  theme_bw() + # Using theme_bw
-  labs(title = "Summary Statistics of Barcode Counts with Data Points",
+  geom_point(aes(y = mean, color = "Median"), size = 3) + # Median points
+  scale_color_manual("", values = c("Median" = "red")) +
+  theme_bw(base_size = 8) + # Set base font size to 8
+  labs(title = "OS052 Count Distribution",
        x = "Condition",
        y = "Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top") # Improve readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # X-axis text size
+        axis.text.y = element_text(size = 8), # Y-axis text size
+        axis.title = element_text(size = 8), # Axis title size
+        plot.title = element_text(size = 8), # Plot title size
+        legend.position = "right", # Move legend to the right
+        legend.text = element_text(size = 8), # Legend text size
+        legend.title = element_text(size = 8)) # Legend title size
+
+
+# Save as SVG with rasterized points
+ggsave("~/Desktop/OS052_count_distribution.svg", plot = p, width = 3, height = 2.5)
 
 
 

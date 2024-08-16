@@ -1,5 +1,5 @@
 
-
+library(ggrastr)
 
 ########    OS384     ##############
 
@@ -37,7 +37,7 @@ fc_cutoff <- 1
 
 
 volcano_plot <- ggplot(OS384_atr_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+  geom_point_rast(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
   labs(title="OS384 ATR inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
@@ -47,6 +47,7 @@ volcano_plot <- ggplot(OS384_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
   ylim(0, 30) 
+
 
 volcano_plot
 
@@ -202,8 +203,8 @@ write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tr
 # Initialize empty dataframe to store results
 p_values_df <- data.frame(barcode = character(), p_value = numeric())
 
-names(OS742_pf_log_scaled)
-names(OS742_pf_log_scaled)[1] <- 'barcode'
+names(OS742_pf_final)
+names(OS742_pf_final)[1] <- 'barcode'
 
 # Define the column names
 barcode_col <- "barcode"
@@ -212,11 +213,11 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 
 
 # Compute chi-squared tests
-p_values_df <- compute_chisq_test(OS742_pf_log_scaled, barcode_col, test_cols, ctrl_cols)
+p_values_df <- compute_chisq_test(OS742_pf_final, barcode_col, test_cols, ctrl_cols)
 
 
 # reassigned this to cis_diff_merged in the forloop above
-OS742_pf_final <- merge(OS742_pf_log_scaled, p_values_df, by = 'barcode')
+OS742_pf_final <- merge(OS742_pf_final, p_values_df, by = 'barcode')
 
 
 # computing log fold change for different samples
@@ -277,14 +278,13 @@ rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
 # Writing the dropout barcodes to the single cell analysis folder
 write.csv(rc_depleted_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/depleted_barcodes_OS742_inVivo_LT.csv")
 
-
-
+# Exporting enriched barcodes
 enriched_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
 
 enriched_barcodes <- dna(enriched_barcodes)
 rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
 rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
-write.csv(rc_enriched_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/enriched_barcodes_OS742_inVivo_LT.csv")
+write.csv(rc_enriched_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS742/enriched_barcodes_OS742_inVivo_LT.csv")
 
 
 
@@ -328,7 +328,7 @@ fc_cutoff <- 1
 
 # Create the volcano plot
 volcano_plot <- ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+  geom_point_rast(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
   labs(title="OS052 ATR inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
@@ -375,10 +375,13 @@ OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')
 OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_cpm_mean_pf / OS052_pf_final$barcode_cpm_mean_ctrl_13)
 
 
+# Set significance level and fold change cutoffs
+sig_level <- 0.05
+fc_cutoff <- 1
 
 # Create the volcano plot
 OS052_PF_volcano <- ggplot(OS052_pf_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value< 0.05 & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+  geom_point_rast(size=0.5, aes(color=ifelse(p_value< 0.05 & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
   labs(title="OS052 CDK-4/6 inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +

@@ -11,7 +11,8 @@ library(mgcv) # GLMGAM regression
 library(grid)
 library(png)
 #library(DescTools)
-
+library(ggrastr)
+library(stringr)
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -160,7 +161,7 @@ OS384_atr_final <- OS384_atr_log_scaled
 
 ### PLOTTING THE REPLICATES
 #Perform regression analysis
-model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_ctrl_13_1_scaled_log, data = OS384_atr_final)
+model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_2_scaled_log, data = OS384_atr_final)
 
 
 # Extract r-squared and p-value
@@ -168,37 +169,27 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot
-OS384_atr_replicate <- ggplot(OS384_atr_final, aes(barcode_count_ctrl_13_1_scaled_log, barcode_count_384_atr_1_scaled_log)) +
+OS384_atr_replicate <- ggplot(OS384_atr_final, aes(barcode_count_384_atr_2_scaled_log, barcode_count_384_atr_1_scaled_log)) +
   geom_point() +
   theme_bw() +
-  rasterise(geom_point(), dpi = 300) + # Add rasterized points
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 9),  # Change the font size for axis titles
-        plot.title = element_text(size = 9)) +  # Change the font size for the main title
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab("Log Transformed ctrl Barcode Count - Replicate 1") +
-  ylab("Log Transformed atr treated Barcode Count - Replicate 1") +
-  ggtitle("OS384 ATR Barcode ctrl/treated Count Correlation") +
-  geom_text(x = min(OS384_atr_log_scaled$barcode_count_384_atr_3_scaled_log),
-            y = max(OS384_atr_log_scaled$barcode_count_384_atr_1_scaled_log),
-            label = paste("R-squared =", round(r_squared, 2), "\n"),
-            hjust = 0, vjust = 1, parse = TRUE)
+        axis.title = element_text(size = 7),  
+        plot.title = element_text(size = 7)) +  
+  xlab("Replicate 1") +
+  ylab("Replicate 2") +
+  ggtitle("OS384 Count Correlation ATR-i") +
+  annotate("text",
+           x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
+           y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
+           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+           hjust = 0, vjust = 1, size = 3)
 
 OS384_atr_replicate
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/OS384_atr_replicate.png", plot = OS384_atr_replicate,  device = "png", width = 3.2, height = 3.2)
+ggsave("~/Desktop/OS384_atr_replicate.png", plot = OS384_atr_replicate,  device = "png", width = 2.2, height = 2.2)
 
-
-# Plot the data
-ggplot(filtered_data, aes(x = barcode)) + 
-  geom_line(aes(y = barcode_log_mean_ctrl_13, color = "Control")) +
-  geom_line(aes(y = barcode_mean_atr, color = "Treatment")) +
-  labs(title = "Barcode Counts",
-       y = "Count",
-       color = "Condition") +
-  theme_minimal()
 
 
 
@@ -340,11 +331,6 @@ OS384_cis_final <- OS384_cis_log_scaled
 
 
 
-# Taking the difference of the log transformed values
-#cis_diff_merged <- OS384_cis_final %>% mutate(difference_cis_log2 = barcode_log_mean_ctrl_13 - barcode_mean_cis_log)
-
-
-
 ########      QC for all samples    ##########
 
 
@@ -427,18 +413,37 @@ summary_data <- data_long %>%
 
 # Merge the summary back to the original long data for plotting
 data_long_summary <- merge(data_long, summary_data, by = "condition")
-
-
 # Plotting
-ggplot(data_long_summary, aes(x = condition, y = counts)) +
-  geom_jitter(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Actual data points
+# Adjust x-axis labels
+data_long_summary$condition <- data_long_summary$condition %>%
+  str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
+  str_replace_all("_", " ") %>% # Replace underscores with spaces
+  str_replace("ctrl 13", "Ctrl Day-13") # Change "ctrl 13" to "Ctrl Day-13"
+
+
+
+# Plot
+p <- ggplot(data_long_summary, aes(x = condition, y = counts)) +
+  geom_jitter_rast(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Rasterized data points
   geom_errorbar(aes(ymin = lower, ymax = upper, x = condition), width = 0.2) + # Error bars
-  geom_point(aes(y = mean, color = "Mean"), size = 3) + # Mean points
-  geom_line(aes(y = median, group = condition, color = "Median"), size = 1) + # Optional: Line for median
-  scale_color_manual("", values = c("Data Points" = "black", "Mean" = "red", "Median" = "blue")) +
-  theme_bw() + # Using theme_bw
-  labs(title = "Summary Statistics of Barcode Counts with Data Points",
+  geom_point(aes(y = mean, color = "Median"), size = 3) + # Median points
+  scale_color_manual("", values = c("Median" = "red")) +
+  theme_bw(base_size = 8) + # Set base font size to 8
+  labs(title = "OS384 Count Distribution",
        x = "Condition",
        y = "Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top") # Improve readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # X-axis text size
+        axis.text.y = element_text(size = 8), # Y-axis text size
+        axis.title = element_text(size = 8), # Axis title size
+        plot.title = element_text(size = 8), # Plot title size
+        legend.position = "right", # Move legend to the right
+        legend.text = element_text(size = 8), # Legend text size
+        legend.title = element_text(size = 8)) # Legend title size
+
+p
+
+# Save as SVG with rasterized points
+ggsave("~/Desktop/OS384_count_distribution.svg", plot = p, width = 3, height = 2.5)
+
+
 

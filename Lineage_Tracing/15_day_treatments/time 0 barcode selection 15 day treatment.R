@@ -27,6 +27,7 @@ result_list <- lapply(file_paths, process_file)
 # Merging the data frames by 'V1'
 OS384_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
+
 # Renaming the count columns
 names(OS384_ctrl_0_merged)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
 
@@ -40,13 +41,11 @@ OS384ctrl0_log_scaled <- OS384_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_l
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
 
-
 # Computing the mean per barcode for the merged dataframe
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
   mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_log", 
                                                         "barcode_count_ctrl_0_2_log", 
                                                         "barcode_count_ctrl_0_3_log"))))
-
 
 # Computing the mean of the cpm scaled values
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
@@ -62,7 +61,7 @@ OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled[order(-OS384ctrl0_log_scaled$barc
 OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# Use ggplot to create the plot
+# Use ggplot to create the Ranked barcode plot
 # p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
 #   geom_line() + # Draw lines
 #   rasterise(geom_point(), dpi = 300) + # Add rasterized points
@@ -91,10 +90,6 @@ names(OS384ctrl0_filtered)[1] <- "barcode"
 time_0_barcodes <- OS384ctrl0_filtered$barcode
 
 
-# writing the csv to the single cell folder
-#write.csv(time_0_barcodes, "~/Desktop/OS384_time0_barcodes.csv")
-
-
 ### Performing regression for r^2 value of replicates ##
 
 
@@ -107,23 +102,27 @@ r_squared <- summary(model)$r.squared
 
 
 # Create the ggplot for replicate correlation in D0 control
-first_two_replicates_384_D0 <- ggplot(OS384ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
-  geom_point() +
+first_two_replicates_384_D0 <- ggplot(OS384ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+  geom_point_rast() +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 9),  # Change the font size for axis titles
-        plot.title = element_text(size = 9)) +  # Change the font size for the main title
-  xlab("Log Transformed Barcode Count - Replicate 1") +
-  ylab("Log Transformed Barcode Count - Replicate 2") +
-  ggtitle("OS384 Barcode Count Correlation Time 0") +
-  geom_text(x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-            y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-            label = paste("R-squared =", round(r_squared, 2)),
-            hjust = 0, vjust = 1, parse = TRUE)
+        axis.title = element_text(size = 7),  
+        plot.title = element_text(size = 7)) +  
+  xlab("Replicate 1") +
+  ylab("Replicate 2") +
+  ggtitle("OS384 Count Correlation Day-0") +
+  annotate("text",
+           x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+           y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+           hjust = 0, vjust = 1, size = 3)
+
+
+
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_384_D0, device = "png", width = 3.2, height = 3.2)
+ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_384_D0, device = "png", width = 2.2, height = 2.2)
 
 
 
@@ -174,10 +173,6 @@ result_list <- lapply(file_paths, process_file)
 OS742_ctrl_0_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Renaming the count columns
-# Make sure that this renaming is not needed for the subsequent function
-#names(OS742_ctrl_0_merged)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ctrl_0_2", "barcode_count_ctrl_0_3")
-
 
 # Scaling the data based on cpm
 OS742_ctrl_0_scaled <- cpm_scaling(OS742_ctrl_0_merged)
@@ -213,6 +208,7 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>%
 
 
 OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled[order(-OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
+
 
 OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
@@ -259,14 +255,17 @@ r_squared <- summary(model)$r.squared
 first_two_replicates_742_D0 <- ggplot(OS742ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
   geom_point() +
   theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  xlab("Log Barcode Count - Replicate 1") +
-  ylab("Log Barcode Count - Replicate 2") +
-  ggtitle("OS742 Barcode Count Correlation") +
-  geom_text(x = min(OS742ctrl0_filtered$barcode_count_ctrl_0_1_log),
-            y = max(OS742ctrl0_filtered$barcode_count_ctrl_0_2_log),
-            label = paste("R-squared =", round(r_squared, 2)),
-            hjust = 0, vjust = 1, parse = TRUE)
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 7),  
+        plot.title = element_text(size = 7)) +  
+  xlab("Replicate 1") +
+  ylab("Replicate 2") +
+  ggtitle("OS384 Count Correlation Day-0") +
+  annotate("text",
+           x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+           y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+           hjust = 0, vjust = 1, size = 3)
 
 
 # Save the plot as an SVG file
@@ -337,7 +336,7 @@ OS052_ctrl_0_merged <- OS052_ctrl_0_merged %>%
 
 # Defining a threshold for the standard deviation cutoff
 # Retry analysis with more stringent cutoff
-threshold <- 4000
+threshold <- 3500
 
 
 # Filtering based on the stdev threshhold
@@ -378,28 +377,31 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 
 ## Plotting replicates
 
-# Perform regression analysis
-# model <- lm(barcode_count_ctrl_0_3_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS052ctrl0_log_scaled)
-# 
-# 
-# # Extract r-squared and p-value
-# r_squared <- summary(model)$r.squared
-# 
-# 
-# # Create the ggplot for replicate correlation in D0 control
-# first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
-#   geom_point() +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS052 Barcode Count Correlation") +
-#   geom_text(x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-#             y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-#             label = paste("R-squared =", round(r_squared, 2)),
-#             hjust = 0, vjust = 1, parse = TRUE)
-# 
-# first_two_replicates_052_D0
+#Perform regression analysis
+model <- lm(barcode_count_ctrl_0_3_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS052ctrl0_log_scaled)
+
+
+# Extract r-squared and p-value
+r_squared <- summary(model)$r.squared
+
+
+# Create the ggplot for replicate correlation in D0 control
+first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
+  geom_point() +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 7),  
+        plot.title = element_text(size = 7)) +  
+  xlab("Replicate 1") +
+  ylab("Replicate 2") +
+  ggtitle("OS052 Count Correlation Day-0") +
+  annotate("text",
+           x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
+           y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
+           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+           hjust = 0, vjust = 1, size = 3)
+
+first_two_replicates_052_D0
 
 # ggsave("~/Desktop/first_two_replicates_052_D0.svg",
 #        plot = first_two_replicates_052_D0,
