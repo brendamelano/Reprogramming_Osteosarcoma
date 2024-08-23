@@ -36,16 +36,15 @@ names(OS384_ctrl_0_merged)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ct
 OS384_ctrl_0_scaled <- cpm_scaling(OS384_ctrl_0_merged)
 
 
-# Computing logs of cpm values
-OS384ctrl0_log_scaled <- OS384_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
-OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
-OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
+# Computing the logs of the cpm values
+OS384ctrl0_log_scaled <- compute_log2_scaled(OS384_ctrl_0_scaled)
+
 
 # Computing the mean per barcode for the merged dataframe
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
-  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_log", 
-                                                        "barcode_count_ctrl_0_2_log", 
-                                                        "barcode_count_ctrl_0_3_log"))))
+  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled_log", 
+                                                        "barcode_count_ctrl_0_2_scaled_log", 
+                                                        "barcode_count_ctrl_0_3_scaled_log"))))
 
 # Computing the mean of the cpm scaled values
 OS384ctrl0_log_scaled <- OS384ctrl0_log_scaled %>% 
@@ -155,7 +154,7 @@ ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_
 
 
 
-#############      742 TIME 0 BARCODES      ################
+#############      OS742 TIME 0 BARCODES      ################
 
 
 
@@ -301,8 +300,6 @@ OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
 write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 
 
-seq_complement(seq_reverse(dna('CATGGCATGTATGAAAAC')))
-
 
 
 #############      OS052 TIME 0 BARCODES      ################
@@ -401,7 +398,9 @@ first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_c
            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
            hjust = 0, vjust = 1, size = 3)
 
+
 first_two_replicates_052_D0
+
 
 # ggsave("~/Desktop/first_two_replicates_052_D0.svg",
 #        plot = first_two_replicates_052_D0,
@@ -435,7 +434,6 @@ names(OS052ctrl0_filtered)[1] <- 'barcode'
 
 # Making the list of barcodes for OS384 time 0 for a whitelist
 OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
-
 
 
 # ###   Filtering barcodes for trajectory visualization   ###

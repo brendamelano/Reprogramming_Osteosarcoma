@@ -15,7 +15,7 @@ names(OS384_atr_final)
 
 # Define the column names
 barcode_col <- "barcode"
-test_cols <- c("barcode_count_384_atr_1", "barcode_count_384_atr_2", "barcode_count_384_atr_3")
+test_cols <- c("barcode_count_atr_1", "barcode_count_atr_2", "barcode_count_atr_3")
 ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
@@ -23,6 +23,7 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 p_values_df <- compute_chisq_test(OS384_atr_final, barcode_col, test_cols, ctrl_cols)
 
 
+# Merging the p-values to the final df
 OS384_atr_final <- merge(OS384_atr_final, p_values_df, by = 'barcode')
 
 
@@ -70,7 +71,7 @@ names(OS384_cis_final)
 
 # Define the column names
 barcode_col <- "barcode"
-test_cols <- c("barcode_count_384_cis_1", "barcode_count_384_cis_2", "barcode_count_384_cis_3")
+test_cols <- c("barcode_count_cis_1", "barcode_count_cis_2", "barcode_count_cis_3")
 ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
@@ -83,7 +84,7 @@ OS384_cis_final <- merge(OS384_cis_final, p_values_df, by = 'barcode')
 
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
-OS384_cis_final$logFC <- log2(OS384_cis_final$barcode_mean_cis_cpm / OS384_cis_final$barcode_mean_ctrl13_cpm)
+OS384_cis_final$logFC <- log2(OS384_cis_final$barcode_mean_cis_cpm / OS384_cis_final$barcode_mean_ctrl_13_cpm)
 
 
 # Set significance level and fold change cutoffs
@@ -91,17 +92,25 @@ sig_level <- 0.05
 fc_cutoff <- 1
 
 
+# Calculate the number of enriched and depleted barcodes
+enriched_count <- sum(OS384_cis_final$logFC > 1 & OS384_cis_final$p_value < sig_level)
+depleted_count <- sum(OS384_cis_final$logFC < -1 & OS384_cis_final$p_value < sig_level)
+
+# Plot with annotations
 volcano_plot <- ggplot(OS384_cis_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+  geom_point_rast(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
   labs(title="OS384 Cis treatment", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        text = element_text(size = 8.5)) + 
+        text = element_text(size = 8)) + 
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  ylim(0, 30) 
+  ylim(0, 30) +
+  # Add annotations for enriched and depleted counts
+  annotate("text", x = -6.3, y = 28, label = paste("Depleted:", depleted_count), hjust = 0, size = 2.7) +
+  annotate("text", x = 6.3, y = 28, label = paste("Enriched:", enriched_count), hjust = 1, size = 2.7)
 
 volcano_plot
 
@@ -124,7 +133,7 @@ names(OS384_pf_final)
 
 # Define the column names
 barcode_col <- "barcode"
-test_cols <- c("barcode_count_384_pf_1", "barcode_count_384_pf_2", "barcode_count_384_pf_3")
+test_cols <- c("barcode_count_pf_1", "barcode_count_pf_2", "barcode_count_pf_3")
 ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
@@ -146,9 +155,9 @@ fc_cutoff <- 1
 
 
 volcano_plot <- ggplot(OS384_pf_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
+  geom_point_rast(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 Atr-i treatment", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 CDK-4/6 inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -157,13 +166,14 @@ volcano_plot <- ggplot(OS384_pf_final, aes(x=logFC, y=-log10(p_value))) +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
   ylim(0, 30) 
 
+volcano_plot
 
 # Save the plot
-ggsave("~/Desktop/OS384_atr_volcano_plot.svg", plot = volcano_plot, width = 2.2, height = 2.2, units = "in")
+ggsave("~/Desktop/OS384_pf_volcano_plot.svg", plot = volcano_plot, width = 2.2, height = 2.2, units = "in")
 
 
 
-#### IDENTIFYING ENRICHED AND DEPLETED BARCODES ##
+#########     IDENTIFYING ENRICHED AND DEPLETED BARCODES    ##
 
 
 
@@ -195,6 +205,9 @@ rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
 
 # Writing the dropout barcodes to the single cell analysis folder
 write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_atr_depleted_barcodes_LT.csv")
+
+write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/OS384_atr_depleted_barcodes_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
+
 
 
 ########    OS742     ##############
@@ -249,7 +262,6 @@ ggsave("~/Desktop/OS742_cdk_volcano_plot.svg", plot = volcano_plot, width = 2.4,
 
 
 ## ENRICHED AND DEPLETED BARCODES
-
 
 
 
@@ -432,12 +444,11 @@ rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
 
 
 # Writing the dropout barcodes to the single cell analysis folder as txt file to be uploaded onto wynton
-write.table(rc_enriched_barcodes$rc_enriched_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/enriched_LT_barcodes_atr_OS052_LT.txt", quote = FALSE, 
-            row.names = FALSE, col.names = FALSE)
+write.table(rc_enriched_barcodes$rc_enriched_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/enriched_LT_barcodes_atr_OS052_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
 
 
-##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   #############
+##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   ###
 
 
 

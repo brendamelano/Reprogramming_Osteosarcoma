@@ -1,6 +1,8 @@
 library(stringdist)
 library(tidyverse)
 library(ggplot2)
+library(ggrastr)
+library(stringr)
 library(ggpubr)
 #library(VennDiagram)
 library(stats)
@@ -11,8 +13,6 @@ library(mgcv) # GLMGAM regression
 library(grid)
 library(png)
 #library(DescTools)
-library(ggrastr)
-library(stringr)
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -33,15 +33,14 @@ result_list <- lapply(file_paths, process_file)
 OS384_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Renaming the first column to barcode
-names(OS384_ctrl_13_merged)[1] <- 'barcode'
+# 
+OS384_ctrl_13_merged <- process_and_filter_barcodes(OS384_ctrl_13_merged, "ctrl_13", time_0_barcodes)
 
 
-# Changing the column names for the scaled counts
-names(OS384_ctrl_13_merged)[2:4] <- c("barcode_count_ctrl_13_1", 
-                                     "barcode_count_ctrl_13_2", 
-                                     "barcode_count_ctrl_13_3")
+# Performing cpm scaling with the function
+OS384_ctrl_13_scaled <- cpm_scaling(OS384_ctrl_13_merged)
 
+OS384_ctrl13_log_scaled <- log_scales_and_means(OS384_ctrl_13_scaled, "ctrl_13")
 
 
 # # Perform regression analysis
@@ -89,17 +88,21 @@ result_list <- lapply(file_paths, process_file)
 OS384_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Renaming the first column to barcode
-names(OS384_atr_merged)[1] <- 'barcode'
+# Example usage:
+OS384_atr_merged <- process_and_filter_barcodes(OS384_atr_merged, "atr", time_0_barcodes)
+
+
+# Performing cpm scaling with the function
+OS384_atr_scaled <- cpm_scaling(OS384_atr_merged)
 
 
 # Merging the control and treated counts
-OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_merged, OS384_atr_merged, by='barcode')
+OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_scaled, OS384_atr_scaled, by='barcode')
 
 
 # Creating a dataframe for the barcodes not in the white list
-test_sample_extra <- OS384_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
-test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
+#test_sample_extra <- OS384_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
+#test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 
 
 ## hamming distance section ##
@@ -115,25 +118,19 @@ test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
 # }
 
 
-# Reassigning the test sample
-OS384_atr_final <- test_sample
-
-
 # Performing cpm scaling with the function
-OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
+#OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
 
 
 # Log transforming the scaled values
-OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_scaled)
-
-names(OS384_atr_log_scaled)
+OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_ctrl13)
 
 
 # Computing the mean per barcode for the merged dataframe
 OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr_cpm = rowMeans(select(., c("barcode_count_384_atr_1_scaled", 
-                                                 "barcode_count_384_atr_2_scaled", 
-                                                 "barcode_count_384_atr_3_scaled"))))
+  mutate(barcode_mean_atr_cpm = rowMeans(select(., c("barcode_count_atr_1_scaled", 
+                                                 "barcode_count_atr_2_scaled", 
+                                                 "barcode_count_atr_3_scaled"))))
 
 
 # Computing the mean cpm per barcode for the merged dataframe
@@ -144,9 +141,9 @@ OS384_atr_log_scaled <- OS384_atr_log_scaled %>%
 
 # Computing the mean per barcode for the merged dataframe
 OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr_log = rowMeans(select(., c("barcode_count_384_atr_1_scaled_log", 
-                                                     "barcode_count_384_atr_2_scaled_log", 
-                                                     "barcode_count_384_atr_3_scaled_log"))))
+  mutate(barcode_mean_atr_log = rowMeans(select(., c("barcode_count_atr_1_scaled_log", 
+                                                     "barcode_count_atr_2_scaled_log", 
+                                                     "barcode_count_atr_3_scaled_log"))))
 
 
 # Computing the mean cpm per barcode for the merged dataframe
@@ -211,44 +208,35 @@ result_list <- lapply(file_paths, process_file)
 OS384_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Changing the barcode column name
-colnames(OS384_pf_merged)[1] <- "barcode"
-
-
-# Merging the control and treated counts
-OS384_pf_ctrl13 <-  merge(OS384_ctrl_13_merged, OS384_pf_merged, by='barcode')
-
-
-# Filtering out the barcodes based on T0 barcodes
-OS384_pf_final <- OS384_pf_ctrl13 %>% filter(barcode %in% time_0_barcodes)
+OS384_pf_merged <- process_and_filter_barcodes(OS384_pf_merged, "pf", time_0_barcodes)
 
 
 # Performing cpm scaling with the function
-OS384_pf_scaled <- cpm_scaling(OS384_pf_final)
+OS384_pf_scaled <- cpm_scaling(OS384_pf_merged)
+
+
+# Merging the control and treated counts
+OS384_pf_ctrl13 <-  merge(OS384_ctrl_13_scaled, OS384_pf_scaled, by='barcode')
 
 
 # 
-OS384_pf_log_scaled <- compute_log2_scaled(OS384_pf_scaled)
+OS384_pf_log_scaled <- compute_log2_scaled(OS384_pf_ctrl13)
 
-
-
-# Changing the name of the V1 column
-names(OS384_pf_log_scaled)[1] <- "barcode"
 
 
 # Computing the mean per barcode for the merged dataframe
 # Make sure that this does not have to be the mean
 OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_384_pf_1_scaled_log", 
-                                                    "barcode_count_384_pf_2_scaled_log", 
-                                                    "barcode_count_384_pf_3_scaled_log"))))
+  mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_pf_1_scaled_log", 
+                                                    "barcode_count_pf_2_scaled_log", 
+                                                    "barcode_count_pf_3_scaled_log"))))
 
 
 # Computing the mean per barcode for the merged dataframe
 OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_384_pf_1_scaled", 
-                                                     "barcode_count_384_pf_2_scaled", 
-                                                     "barcode_count_384_pf_3_scaled"))))
+  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_pf_1_scaled", 
+                                                     "barcode_count_pf_2_scaled", 
+                                                     "barcode_count_pf_3_scaled"))))
 
 
 # Computing the mean cpm per barcode for the merged dataframe
@@ -257,6 +245,7 @@ OS384_pf_log_scaled <- OS384_pf_log_scaled %>%
                                                         "barcode_count_ctrl_13_2_scaled", 
                                                         "barcode_count_ctrl_13_3_scaled"))))
 
+# Defining the final OS384 CDK 4/6 i object
 OS384_pf_final <- OS384_pf_log_scaled
 
 
@@ -281,53 +270,33 @@ result_list <- lapply(file_paths, process_file)
 OS384_cis_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-names(OS384_cis_merged)[1] <- "barcode"
-
-
-# Merging the control and treated counts
-OS384_cis_ctrl13 <-  merge(OS384_ctrl_13_merged, OS384_cis_merged, by='barcode')
-
-
-# Filtering out the barcodes based on T0 barcodes
-OS384_cis_final <- OS384_cis_ctrl13 %>% filter(barcode %in% time_0_barcodes)
+OS384_cis_merged <- process_and_filter_barcodes(OS384_cis_merged, "cis", time_0_barcodes)
 
 
 # Performing cpm scaling with the function
-OS384_cis_scaled <- cpm_scaling(OS384_cis_final)
+OS384_cis_scaled <- cpm_scaling(OS384_cis_merged)
 
 
-names(OS384_cis_scaled)
-
-
-# Computing logs of cpm values
-OS384_cis_log_scaled <- OS384_cis_scaled %>% mutate(barcode_count_cis_1_log = log2(barcode_count_384_cis_1_scaled))
-OS384_cis_log_scaled <- OS384_cis_log_scaled %>% mutate(barcode_count_cis_2_log = log2(barcode_count_384_cis_2_scaled))
-OS384_cis_log_scaled <- OS384_cis_log_scaled %>% mutate(barcode_count_cis_3_log = log2(barcode_count_384_cis_3_scaled))
+# 
+OS384_cis_log_scaled <- compute_log2_scaled(OS384_cis_scaled)
 
 
 # computing the mean per barcode for the merged dataframe
 # Make sure that this does not have to be the mean
-# OS384_cis_log_scaled <- OS384_cis_log_scaled %>% 
-#   mutate(barcode_mean_cis_log = rowMeans(select(., c("barcode_count_cis_1_log", 
-#                                                      "barcode_count_cis_2_log", 
-#                                                      "barcode_count_cis_3_log"))))
+OS384_cis_log_scaled <- OS384_cis_log_scaled %>%
+  mutate(barcode_mean_cis_log = rowMeans(select(., c("barcode_count_cis_1_scaled_log",
+                                                     "barcode_count_cis_2_scaled_log",
+                                                     "barcode_count_cis_3_scaled_log"))))
 
 
 OS384_cis_log_scaled <- OS384_cis_log_scaled %>% 
-  mutate(barcode_mean_cis_cpm = rowMeans(select(., c("barcode_count_384_cis_1_scaled", 
-                                                     "barcode_count_384_cis_2_scaled", 
-                                                     "barcode_count_384_cis_3_scaled"))))
+  mutate(barcode_mean_cis_cpm = rowMeans(select(., c("barcode_count_cis_1_scaled", 
+                                                     "barcode_count_cis_2_scaled", 
+                                                     "barcode_count_cis_3_scaled"))))
 
 
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS384_cis_log_scaled <- OS384_cis_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
-
-names(OS384_cis_log_scaled)
-OS384_cis_final <- OS384_cis_log_scaled
+# Merging the control and treated counts
+OS384_cis_final <-  merge(OS384_ctrl13_log_scaled, OS384_cis_log_scaled, by='barcode')
 
 
 

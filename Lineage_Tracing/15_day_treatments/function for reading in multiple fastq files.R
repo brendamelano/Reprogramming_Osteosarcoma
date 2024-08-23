@@ -91,6 +91,26 @@ compute_log2_scaled <- function(df) {
 
 
 
+log_scales_and_means <- function(data, group_prefix) {
+  # Compute log2 scaled values
+  scaled_log_data <- compute_log2_scaled(data)
+  
+  # Dynamically create column names based on the group prefix
+  log_columns <- paste0("barcode_count_", group_prefix, "_", 1:3, "_scaled_log")
+  scaled_columns <- paste0("barcode_count_", group_prefix, "_", 1:3, "_scaled")
+  
+  # Compute the mean per barcode for the log-scaled columns and add the group prefix to the variable name
+  scaled_log_data <- scaled_log_data %>%
+    mutate(!!paste0("barcode_mean_", group_prefix, "_log") := rowMeans(select(., all_of(log_columns))))
+  
+  # Compute the mean per barcode for the original scaled columns and add the group prefix to the variable name
+  scaled_log_data <- scaled_log_data %>%
+    mutate(!!paste0("barcode_mean_", group_prefix, "_cpm") := rowMeans(select(., all_of(scaled_columns))))
+  
+  return(scaled_log_data)
+}
+
+
 # Function fror chisquared analysis
 compute_chisq_test <- function(df, barcode_col, test_cols, ctrl_cols) {
   # Initialize an empty dataframe to store the results

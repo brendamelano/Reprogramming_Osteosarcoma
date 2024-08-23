@@ -259,7 +259,6 @@ OS052_pf_log_scaled <- OS052_pf_log_scaled %>%
 
 
 
-
 # Reassigning the test_sample
 OS052_pf_final <- OS052_pf_log_scaled
 
@@ -284,6 +283,8 @@ raw_counts_df_atr <- OS052_atr_final %>%
 
 # Merging the raw counts from the atr and pf treatment
 raw_counts_df <- left_join(raw_counts_df_atr, raw_counts_df_pf)
+
+# Setting the na values to 0
 raw_counts_df[is.na(raw_counts_df)] <- 0
 
 
@@ -301,27 +302,36 @@ sums_df <- data.frame(
 
 # Modify the sample_type to remove "barcode_count_" and underscores
 sums_df$sample_type <- gsub("barcode_count_", "", sums_df$sample_type)
-sums_df$sample_type <- gsub("ctrl_13", "ctrl-D13", sums_df$sample_type)
+sums_df$sample_type <- gsub("ctrl_13", "Ctrl-D13", sums_df$sample_type)  # Capitalize the "c" in "ctrl"
 sums_df$sample_type <- gsub("_", " ", sums_df$sample_type)
 
+# Replace 'pf' with 'CDK-4/6 i' and 'atr' with 'ATR i'
+sums_df$sample_type <- gsub("pf", "CDK-4/6 i", sums_df$sample_type)
+sums_df$sample_type <- gsub("atr", "ATR i", sums_df$sample_type)
 
 # Order the factor levels so that control samples appear first
 sums_df$sample_type <- factor(sums_df$sample_type, levels = sort(unique(sums_df$sample_type), decreasing = TRUE))
 
-# Create the plot
+# Create the plot with font sizes set to 8
+# Create the plot with a log scale on the y-axis and font sizes set to 8
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
-  theme_bw() +
-  labs(title = "OS052 Count sums", x = "Sample", y = "Total Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1), # Rotate X labels for readability
-        panel.grid.major = element_blank(), # Remove major gridlines
-        panel.grid.minor = element_blank()) # Remove minor gridlines
-
+  theme_bw(base_size = 8) +  # Set base font size to 8
+  labs(title = "OS052 Count sums", x = "Sample", y = "Total Counts (log scale)") +
+  scale_y_log10() +  # Set y-axis to log scale
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # Rotate X labels for readability, font size 8
+        axis.text.y = element_text(size = 8), # Y-axis text size 8
+        axis.title.x = element_text(size = 8), # X-axis title size 8
+        axis.title.y = element_text(size = 8), # Y-axis title size 8
+        plot.title = element_text(size = 8),   # Title font size 8
+        panel.grid.major = element_blank(),    # Remove major gridlines
+        panel.grid.minor = element_blank())    # Remove minor gridlines
 
 # Print the plot
 print(plot)
 
-ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 3.3, height = 4)
+
+ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 3, height = 3)
 
 
 
