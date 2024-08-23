@@ -1,10 +1,11 @@
+#library(VennDiagram)
 library(stringdist)
+#library(DescTools)
 library(tidyverse)
 library(ggplot2)
 library(ggrastr)
 library(stringr)
 library(ggpubr)
-#library(VennDiagram)
 library(stats)
 library(dplyr)
 library(tidyr)
@@ -12,7 +13,7 @@ library(purrr)
 library(mgcv) # GLMGAM regression
 library(grid)
 library(png)
-#library(DescTools)
+
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -215,39 +216,11 @@ OS384_pf_merged <- process_and_filter_barcodes(OS384_pf_merged, "pf", time_0_bar
 OS384_pf_scaled <- cpm_scaling(OS384_pf_merged)
 
 
+OS384_pf_log_scaled <- log_scales_and_means(OS384_pf_scaled, "pf")
+
+
 # Merging the control and treated counts
-OS384_pf_ctrl13 <-  merge(OS384_ctrl_13_scaled, OS384_pf_scaled, by='barcode')
-
-
-# 
-OS384_pf_log_scaled <- compute_log2_scaled(OS384_pf_ctrl13)
-
-
-
-# Computing the mean per barcode for the merged dataframe
-# Make sure that this does not have to be the mean
-OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_pf_1_scaled_log", 
-                                                    "barcode_count_pf_2_scaled_log", 
-                                                    "barcode_count_pf_3_scaled_log"))))
-
-
-# Computing the mean per barcode for the merged dataframe
-OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_pf_1_scaled", 
-                                                     "barcode_count_pf_2_scaled", 
-                                                     "barcode_count_pf_3_scaled"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS384_pf_log_scaled <- OS384_pf_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
-
-# Defining the final OS384 CDK 4/6 i object
-OS384_pf_final <- OS384_pf_log_scaled
-
+OS384_pf_final <-  merge(OS384_ctrl13_log_scaled, OS384_pf_log_scaled, by='barcode')
 
 
 
