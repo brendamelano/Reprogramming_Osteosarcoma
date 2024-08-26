@@ -97,8 +97,11 @@ OS384_atr_merged <- process_and_filter_barcodes(OS384_atr_merged, "atr", time_0_
 OS384_atr_scaled <- cpm_scaling(OS384_atr_merged)
 
 
+OS384_atr_log_scaled <- log_scales_and_means(OS384_atr_scaled, "atr")
+
+
 # Merging the control and treated counts
-OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_scaled, OS384_atr_scaled, by='barcode')
+OS384_atr_final <-  merge(OS384_ctrl13_log_scaled, OS384_atr_log_scaled, by='barcode')
 
 
 # Creating a dataframe for the barcodes not in the white list
@@ -122,39 +125,6 @@ OS384_atr_ctrl13 <-  merge(OS384_ctrl_13_scaled, OS384_atr_scaled, by='barcode')
 # Performing cpm scaling with the function
 #OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
 
-
-# Log transforming the scaled values
-OS384_atr_log_scaled <- compute_log2_scaled(OS384_atr_ctrl13)
-
-
-# Computing the mean per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr_cpm = rowMeans(select(., c("barcode_count_atr_1_scaled", 
-                                                 "barcode_count_atr_2_scaled", 
-                                                 "barcode_count_atr_3_scaled"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                        "barcode_count_ctrl_13_2_scaled", 
-                                                        "barcode_count_ctrl_13_3_scaled"))))
-
-# Computing the mean per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_atr_log = rowMeans(select(., c("barcode_count_atr_1_scaled_log", 
-                                                     "barcode_count_atr_2_scaled_log", 
-                                                     "barcode_count_atr_3_scaled_log"))))
-
-
-# Computing the mean cpm per barcode for the merged dataframe
-OS384_atr_log_scaled <- OS384_atr_log_scaled %>% 
-  mutate(barcode_mean_ctrl13_log = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled_log", 
-                                                        "barcode_count_ctrl_13_2_scaled_log", 
-                                                        "barcode_count_ctrl_13_3_scaled_log"))))
-
-
-OS384_atr_final <- OS384_atr_log_scaled
 
 
 ### PLOTTING THE REPLICATES

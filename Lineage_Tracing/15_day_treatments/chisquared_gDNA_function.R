@@ -1,7 +1,7 @@
 
 library(ggrastr)
 
-########    OS384     ##############
+########    OS384  ATR-i   ##############
 
 
 
@@ -29,7 +29,7 @@ OS384_atr_final <- merge(OS384_atr_final, p_values_df, by = 'barcode')
 
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
-OS384_atr_final$logFC <- log2(OS384_atr_final$barcode_mean_atr_cpm / OS384_atr_final$barcode_mean_ctrl13_cpm)
+OS384_atr_final$logFC <- log2(OS384_atr_final$barcode_mean_atr_cpm / OS384_atr_final$barcode_mean_ctrl_13_cpm)
 
 
 # Set significance level and fold change cutoffs
@@ -37,17 +37,26 @@ sig_level <- 0.05
 fc_cutoff <- 1
 
 
+
+# Calculate the number of enriched and depleted barcodes
+enriched_count <- sum(OS384_atr_final$logFC > 1 & OS384_atr_final$p_value < sig_level)
+depleted_count <- sum(OS384_atr_final$logFC < -1 & OS384_atr_final$p_value < sig_level)
+
+# Plot with annotations
 volcano_plot <- ggplot(OS384_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point_rast(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
   scale_color_manual(values=c("black", "red")) +
-  labs(title="OS384 ATR inhibitor", x="logFC", y="-log10(p-value)") +
+  labs(title="OS384 Atr inhibitor", x="logFC", y="-log10(p-value)") +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        text = element_text(size = 8.5)) + 
+        text = element_text(size = 8)) + 
   geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
   geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  ylim(0, 30) 
+  ylim(0, 30) +
+  # Add annotations for enriched and depleted counts
+  annotate("text", x = -6.3, y = 28, label = paste("Depleted:", depleted_count), hjust = 0, size = 2.7) +
+  annotate("text", x = 6.3, y = 28, label = paste("Enriched:", enriched_count), hjust = 1, size = 2.7)
 
 
 volcano_plot
