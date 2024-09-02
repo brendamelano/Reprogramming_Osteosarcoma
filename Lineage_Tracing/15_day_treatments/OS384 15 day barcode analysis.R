@@ -253,9 +253,11 @@ raw_counts_df_pf <- OS384_pf_final %>%
          -contains("mean"), -contains("StdDev"), -contains("Index"))
 
 
+# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' for the atr df
 raw_counts_df_atr <- OS384_atr_final %>%
   select(-contains("log"), -contains("scaled"), 
          -contains("mean"), -contains("StdDev"), -contains("Index"))
+
 
 # Creating cis df to keep only raw values
 raw_counts_df_cis <- OS384_cis_final %>%
@@ -266,12 +268,14 @@ raw_counts_df_cis <- OS384_cis_final %>%
 # Merging the raw counts from the atr and pf treatment
 raw_counts_df <- left_join(raw_counts_df_atr, raw_counts_df_pf)
 
+raw_counts_df <- left_join(raw_counts_df, raw_counts_df_cis)
+
 
 # Assigning the na values to 0
 raw_counts_df[is.na(raw_counts_df)] <- 0
 
 
-# 
+# Removing the first column - "barcode" column
 raw_counts_df <- raw_counts_df[,-1]
 
 
@@ -286,23 +290,36 @@ sums_df <- data.frame(
 )
 
 
+# Adjust x-axis labels
+sums_df$sample_type <- sums_df$sample_type  %>%
+  str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
+  str_replace_all("_", " ") %>% # Replace underscores with spaces
+  str_replace("ctrl 13", "Ctrl Day-13") %>% # Change "ctrl 13" to "Ctrl Day-13"
+  str_to_title() %>%# Capitalize the first letter of each word
+  str_replace("Pf", "CDK-4/6")
+
 # Create the plot
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
-  theme_bw() +
-  labs(title = "OS384 Count sums", x = "Sample", y = "Total Counts") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1), # Rotate X labels for readability
-        panel.grid.major = element_blank(), # Remove major gridlines
-        panel.grid.minor = element_blank()) # Remove minor gridlines
-
+  theme_bw(base_size = 8) +  # Set base font size to 8
+  labs(title = "OS384 Count sums", x = "Sample", y = "Total Counts (log scale)") +
+  scale_y_log10() +  # Set y-axis to log scale
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # Rotate X labels for readability, font size 8
+        axis.text.y = element_text(size = 8), # Y-axis text size 8
+        axis.title.x = element_text(size = 8), # X-axis title size 8
+        axis.title.y = element_text(size = 8), # Y-axis title size 8
+        plot.title = element_text(size = 8),   # Title font size 8
+        panel.grid.major = element_blank(),    # Remove major gridlines
+        panel.grid.minor = element_blank())    # Remove minor gridlines
 
 # Print the plot
 print(plot)
 
-ggsave("~/Desktop/OS384_total_counts.svg", plot, device = "svg", width = 3.3, height = 4)
+ggsave("~/Desktop/OS384_total_counts.svg", plot, device = "svg", width = 3, height = 3)
 
+##
 
-# pltting mean and median
+# plotting mean and median
 data_long <- pivot_longer(raw_counts_df, 
                           cols = starts_with("barcode_count"),
                           names_to = "condition",
@@ -325,13 +342,13 @@ summary_data <- data_long %>%
 
 # Merge the summary back to the original long data for plotting
 data_long_summary <- merge(data_long, summary_data, by = "condition")
-# Plotting
+
+
 # Adjust x-axis labels
 data_long_summary$condition <- data_long_summary$condition %>%
   str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
   str_replace_all("_", " ") %>% # Replace underscores with spaces
   str_replace("ctrl 13", "Ctrl Day-13") # Change "ctrl 13" to "Ctrl Day-13"
-
 
 
 # Plot

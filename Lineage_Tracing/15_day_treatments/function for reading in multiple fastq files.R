@@ -9,7 +9,7 @@ process_file <- function(file_path) {
   # extracting the basename from the file path
   file_name <- basename(file_path)
   
-  # extracing the sequence after the number prefix
+  # extracting the sequence after the number prefix
   file_name <- substring(file_name, 4)
   
   # removing the suffix from the base names
@@ -143,3 +143,30 @@ compute_chisq_test <- function(df, barcode_col, test_cols, ctrl_cols) {
   
   return(p_values)
 }
+
+
+barcode_volcano_plot <- function(data, sample_name, drug, sig_level = 0.05, fc_cutoff = 1) {
+  
+  # Calculate the number of enriched and depleted barcodes
+  enriched_count <- sum(data$logFC > fc_cutoff & data$p_value < sig_level)
+  depleted_count <- sum(data$logFC < -fc_cutoff & data$p_value < sig_level)
+  
+  # Create the volcano plot
+  volcano_plot <- ggplot(data, aes(x = logFC, y = -log10(p_value))) +
+    geom_point_rast(size = 0.5, aes(color = ifelse(p_value < sig_level & (logFC > fc_cutoff | logFC < -fc_cutoff), "red", "black")), show.legend = FALSE) +
+    scale_color_manual(values = c("black", "red")) +
+    labs(title = paste(sample_name, drug), x = "logFC", y = "-log10(p-value)") +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          text = element_text(size = 8)) + 
+    geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype = "dashed", color = "gray") +
+    geom_hline(yintercept = -log10(sig_level), linetype = "dashed", color = "gray") +
+    ylim(0, 30) +
+    # Add annotations for enriched and depleted counts
+    annotate("text", x = -6.3, y = 28, label = paste("Depleted:", depleted_count), hjust = 0, size = 2.7) +
+    annotate("text", x = 6.3, y = 28, label = paste("Enriched:", enriched_count), hjust = 1, size = 2.7)
+  
+  return(volcano_plot)
+}
+

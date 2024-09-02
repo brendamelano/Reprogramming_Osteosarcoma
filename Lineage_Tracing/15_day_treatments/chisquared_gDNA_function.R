@@ -42,6 +42,7 @@ fc_cutoff <- 1
 enriched_count <- sum(OS384_atr_final$logFC > 1 & OS384_atr_final$p_value < sig_level)
 depleted_count <- sum(OS384_atr_final$logFC < -1 & OS384_atr_final$p_value < sig_level)
 
+
 # Plot with annotations
 volcano_plot <- ggplot(OS384_atr_final, aes(x=logFC, y=-log10(p_value))) +
   geom_point_rast(size=0.5, aes(color=ifelse(p_value < sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
@@ -353,18 +354,8 @@ sig_level <- 0.05
 fc_cutoff <- 1
 
 
-# Create the volcano plot
-volcano_plot <- ggplot(OS052_atr_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point_rast(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
-  scale_color_manual(values=c("black", "red")) +
-  labs(title="OS052 ATR inhibitor", x="logFC", y="-log10(p-value)") +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        text = element_text(size = 8.5)) + 
-  geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  ylim(0, 30)
+volcano_plot <- create_volcano_plot(OS052_atr_final, sample_name = "OS384", drug = "Atr inhibitor", sig_level = 0.05, fc_cutoff = 1)
+print(volcano_plot)
 
 
 # Save the plot
