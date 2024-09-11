@@ -6,6 +6,8 @@ library(tidyverse)
 library(stats)
 library(dplyr)
 library(ggplot2)
+library(ggrastr)
+library(stringr)
 library(tidyr)
 library(ggpubr)
 #library(DESeq2)
@@ -14,8 +16,7 @@ library(purrr)
 library(grid)
 library(png)
 #library(DescTools)
-library(ggrastr)
-library(stringr)
+
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -36,7 +37,7 @@ result_list <- lapply(file_paths, process_file)
 OS052_ctrl_13_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Example usage:
+# Filtering barcodes based on the time 0 barcodes
 OS052_ctrl_13_merged <- process_and_filter_barcodes(OS052_ctrl_13_merged, "ctrl_13", OS052_time_0_barcodes)
 
 
@@ -63,12 +64,13 @@ result_list <- lapply(file_paths, process_file)
 OS052_atr_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
-# Example usage:
+# Filtering based on time 0 barcodes
 OS052_atr_merged <- process_and_filter_barcodes(OS052_atr_merged, "atr", OS052_time_0_barcodes)
 
 
 # Performing cpm scaling with the function
 OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
+
 
 # Creating a dataframe for the barcodes not in the white list
 #test_sample_extra <- OS052_atr_ctrl13 %>% dplyr::filter(!(barcode %in% OS052_time_0_barcodes))

@@ -10,7 +10,7 @@ library(tidyr)
 
 
 
-###############     384 TIME 0 BARCODES       ##################
+###############     OS384 TIME 0 BARCODES       ##################
 
 
 
@@ -374,32 +374,33 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 
 ## Plotting replicates
 
+
 #Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS052ctrl0_log_scaled)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot for replicate correlation in D0 control
-first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 7),  
-        plot.title = element_text(size = 7)) +  
-  xlab("Replicate 1") +
-  ylab("Replicate 2") +
-  ggtitle("OS052 Count Correlation Day-0") +
-  annotate("text",
-           x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
-           y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
-           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
-           hjust = 0, vjust = 1, size = 3)
-
-
-first_two_replicates_052_D0
+# model <- lm(barcode_count_ctrl_0_3_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS052ctrl0_log_scaled)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot for replicate correlation in D0 control
+# first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),  
+#         plot.title = element_text(size = 7)) +  
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS052 Count Correlation Day-0") +
+#   annotate("text",
+#            x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
+#            y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
+# 
+# 
+# first_two_replicates_052_D0
 
 
 # ggsave("~/Desktop/first_two_replicates_052_D0.svg",

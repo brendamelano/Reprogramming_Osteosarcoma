@@ -27,6 +27,8 @@ process_file <- function(file_path) {
   return(data_summary)
 }
 
+
+# Filtering based on time 0 barcodes
 process_and_filter_barcodes <- function(input_df, sample_name, time_0_barcodes) {
   
   # Renaming the first column to 'barcode'
@@ -42,7 +44,6 @@ process_and_filter_barcodes <- function(input_df, sample_name, time_0_barcodes) 
   
   return(filtered_df)
 }
-
 
 
 # Creating a function to compute scaled values of merged dataframe
