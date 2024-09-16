@@ -3,6 +3,7 @@ library(stringdist)
 library(tidyverse)
 library(ggplot2)
 library(tidyverse)
+#library(DESeq2)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -10,7 +11,6 @@ library(ggrastr)
 library(stringr)
 library(tidyr)
 library(ggpubr)
-#library(DESeq2)
 library(mgcv) # GLMGAM regression
 library(purrr)
 library(grid)
@@ -366,18 +366,20 @@ data_long_summary <- merge(data_long, summary_data, by = "condition")
 
 # Plotting
 # Adjust x-axis labels
-data_long_summary$condition <- data_long_summary$condition %>%
+data_long_summary$condition <- data_long_summary$condition %>% 
   str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
   str_replace_all("_", " ") %>% # Replace underscores with spaces
-  str_replace("ctrl 13", "Ctrl Day-13") # Change "ctrl 13" to "Ctrl Day-13"
-
+  str_replace("ctrl 13", "Ctrl Day-13") %>% # Change "ctrl 13" to "Ctrl Day-13"
+  str_replace("pf", "CDK-4/6 i") %>% # Change "pf" to "CDK-4/6 i"
+  str_replace("atr", "Atr i") %>% # Change "atr" to "Atr i"
+  str_to_title()  # Capitalize the first letter of each word
 
 
 # Plot
 p <- ggplot(data_long_summary, aes(x = condition, y = counts)) +
   geom_jitter_rast(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Rasterized data points
   geom_errorbar(aes(ymin = lower, ymax = upper, x = condition), width = 0.2) + # Error bars
-  geom_point(aes(y = mean, color = "Median"), size = 3) + # Median points
+  geom_point(aes(y = median, color = "Median"), size = 1) + # Median points
   scale_color_manual("", values = c("Median" = "red")) +
   theme_bw(base_size = 8) + # Set base font size to 8
   labs(title = "OS052 Count Distribution",
@@ -391,6 +393,7 @@ p <- ggplot(data_long_summary, aes(x = condition, y = counts)) +
         legend.text = element_text(size = 8), # Legend text size
         legend.title = element_text(size = 8)) # Legend title size
 
+p
 
 # Save as SVG with rasterized points
 ggsave("~/Desktop/OS052_count_distribution.svg", plot = p, width = 3, height = 2.5)

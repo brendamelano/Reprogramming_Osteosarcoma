@@ -6,6 +6,8 @@ library(stringdist)
 library(ggpubr)
 library(tidyr)
 library(tidyverse)
+library(ggrastr)
+library(stringr)
 library(DESeq2)
 library(tidyverse)
 library(mgcv) # GLMGAM regression
@@ -14,8 +16,7 @@ library(DescTools)
 library(ggplot2)
 library(grid)
 library(png)
-library(ggrastr)
-library(stringr)
+
 
 
 ############      PROCESSING SAMPLES FOR CTRL D13      #####################
@@ -121,10 +122,11 @@ file_paths <- c('~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_74_c
 # Combining all of the barcode dataframes
 result_list <- lapply(file_paths, process_file)
 
+
 # # Merging the data frames by 'V1'
 OS742_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 # 
-# 
+
 
 #
 OS742_pf_merged <- process_and_filter_barcodes(OS742_pf_merged, "pf", OS742_time_0_barcodes)
@@ -132,6 +134,7 @@ OS742_pf_merged <- process_and_filter_barcodes(OS742_pf_merged, "pf", OS742_time
 
 # Performing cpm scaling with the function
 OS742_pf_scaled <- cpm_scaling(OS742_pf_merged)
+
 
 # Merging the control and treated counts
 OS742_pf_ctrl13 <-  merge(OS742_ctrl_13_scaled, OS742_pf_scaled, by='barcode')
@@ -159,6 +162,7 @@ OS742_pf_log_scaled <- OS742_pf_log_scaled %>%
 
 
 OS742_pf_final <- OS742_pf_log_scaled
+
 
 ## PLOTTING THE REPLICATES
 
