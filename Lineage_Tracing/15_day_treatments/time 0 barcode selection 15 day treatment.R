@@ -212,21 +212,21 @@ OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled[order(-OS742ctrl0_log_scaled$barc
 OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-# Use ggplot to create the plot
-p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  rasterise(geom_point(), dpi = 300) + # Add rasterized points
-  scale_y_log10() + # Log scale for Y axis
-  labs(title = "OS742 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank(),
-        text = element_text(size = 10),
-        plot.title = element_text(size = 10)) # Remove minor grid lines
-
-
-# Save the plot as SVG with specified dimensions
-ggsave("~/Desktop/OS742_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
+# # Use ggplot to create the plot
+# p <- ggplot(OS742ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   rasterise(geom_point(), dpi = 300) + # Add rasterized points
+#   scale_y_log10() + # Log scale for Y axis
+#   labs(title = "OS742 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(panel.grid.major = element_blank(), # Remove major grid lines
+#         panel.grid.minor = element_blank(),
+#         text = element_text(size = 10),
+#         plot.title = element_text(size = 10)) # Remove minor grid lines
+# 
+# 
+# # Save the plot as SVG with specified dimensions
+# ggsave("~/Desktop/OS742_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
 
 
 

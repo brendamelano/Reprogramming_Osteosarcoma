@@ -125,7 +125,6 @@ result_list <- lapply(file_paths, process_file)
 
 # # Merging the data frames by 'V1'
 OS742_pf_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
-# 
 
 
 #
@@ -139,29 +138,45 @@ OS742_pf_scaled <- cpm_scaling(OS742_pf_merged)
 # Merging the control and treated counts
 OS742_pf_ctrl13 <-  merge(OS742_ctrl_13_scaled, OS742_pf_scaled, by='barcode')
 
+
+# Creating a dataframe for the barcodes not in the white list
+#test_sample_extra <- OS384_atr_ctrl13 %>% filter(!(barcode %in% time_0_barcodes))
+#test_sample <- OS384_atr_ctrl13 %>% filter((barcode %in% time_0_barcodes))
+
+
+## hamming distance section ##
+# # Writing a for loop to add values from the extra values to the whitelist
+# for (barcode in 1:nrow(test_sample_extra)) {
+#   barcode_seq <- test_sample_extra$barcode[barcode]
+#   for (barcode_white in 1:nrow(test_sample)){
+#     barcode_white_seq <- test_sample$barcode[barcode_white]
+#     if (StrDist(barcode_seq, barcode_white_seq, method = "hamming") == 1){
+#       test_sample[barcode_white, 2:4] <- test_sample[barcode_white, 2:4] + test_sample_extra[barcode, 2:4]
+#     }
+#   }
+# }
+
+
 # 
 OS742_pf_ctrl13 <- compute_log2_scaled(OS742_pf_ctrl13)
 
 
-names(OS742_pf_log_scaled)
-
-
 
 # Computing the mean per barcode for the merged dataframe
-OS742_pf_log_scaled <- OS742_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_42_pf_1_scaled", 
-                                                     "barcode_count_42_pf_2_scaled", 
-                                                     "barcode_count_42_pf_3_scaled"))))
+OS742_pf_ctrl13 <- OS742_pf_ctrl13 %>% 
+  mutate(barcode_mean_pf_cpm = rowMeans(select(., c("barcode_count_pf_1_scaled", 
+                                                     "barcode_count_pf_2_scaled", 
+                                                     "barcode_count_pf_3_scaled"))))
 
 
 # Computing the mean cpm per barcode for the merged dataframe
-OS742_pf_log_scaled <- OS742_pf_log_scaled %>% 
+OS742_pf_ctrl13 <- OS742_pf_ctrl13 %>% 
   mutate(barcode_mean_ctrl13_cpm = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
                                                         "barcode_count_ctrl_13_2_scaled", 
                                                         "barcode_count_ctrl_13_3_scaled"))))
 
 
-OS742_pf_final <- OS742_pf_log_scaled
+OS742_pf_final <- OS742_pf_ctrl13
 
 
 ## PLOTTING THE REPLICATES

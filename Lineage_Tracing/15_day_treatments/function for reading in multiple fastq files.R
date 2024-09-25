@@ -1,6 +1,9 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(dplyr)
+library(stringdist)
+library(data.table)
 
 
 # Function to read in and process the files
@@ -43,6 +46,88 @@ process_and_filter_barcodes <- function(input_df, sample_name, time_0_barcodes) 
   filtered_df <- input_df %>% dplyr::filter(barcode %in% time_0_barcodes)
   
   return(filtered_df)
+}
+
+process_and_filter_barcodes <- function(input_df, sample_name, time_0_barcodes) {
+
+  # Renaming the first column to 'barcode'
+  names(input_df)[1] <- 'barcode'
+  
+  # Changing the column names for the scaled counts based on the sample name
+  for (i in 1:3) {
+    names(input_df)[i + 1] <- paste0("barcode_count_", sample_name, "_", i)
+  }
+  
+  # Identify barcodes in time_0_barcodes and not in time_0_barcodes
+  in_whitelist_df <- input_df %>% filter(barcode %in% time_0_barcodes)
+  not_in_whitelist_df <- input_df %>% filter(!(barcode %in% time_0_barcodes))
+  
+  # Get the barcodes
+  barcodes_in_whitelist <- as.character(in_whitelist_df$barcode)
+  barcodes_not_in_whitelist <- as.character(not_in_whitelist_df$barcode)
+  
+  # Define the alphabet
+  alphabet <- c("A", "C", "G", "T", "N")
+  
+  # Function to generate barcodes at Hamming distance one
+  generate_hamming_distance_one_barcodes <- function(barcode, alphabet) {
+    barcode_chars <- unlist(strsplit(barcode, split=""))
+    positions <- seq_along(barcode_chars)
+    hamming_barcodes <- c()
+    for (pos in positions) {
+      for (letter in alphabet) {
+        if (letter != barcode_chars[pos]) {
+          new_barcode_chars <- barcode_chars
+          new_barcode_chars[pos] <- letter
+          new_barcode <- paste0(new_barcode_chars, collapse="")
+          hamming_barcodes <- c(hamming_barcodes, new_barcode)
+        }
+      }
+    }
+    return(hamming_barcodes)
+  }
+  
+  # Create a mapping from barcodes at Hamming distance one to the original barcode
+  hamming_mapping <- data.frame(generated_barcode=character(), original_barcode=character(), stringsAsFactors=FALSE)
+  
+  for (barcode in barcodes_in_whitelist) {
+    hamming_barcodes <- generate_hamming_distance_one_barcodes(barcode, alphabet)
+    hamming_mapping <- rbind(hamming_mapping, data.frame(generated_barcode=hamming_barcodes, original_barcode=barcode, stringsAsFactors=FALSE))
+  }
+  
+  # Proceed only if there are barcodes not in the whitelist and the hamming mapping is not empty
+  if (nrow(not_in_whitelist_df) > 0 && nrow(hamming_mapping) > 0) {
+    # Merge non-whitelist barcodes with the Hamming mapping
+    merged_df <- merge(not_in_whitelist_df, hamming_mapping, by.x="barcode", by.y="generated_barcode")
+    
+    if (nrow(merged_df) > 0) {
+      # Define counts columns
+      counts_columns <- names(not_in_whitelist_df)[2:4]
+      
+      # Sum the counts for each original_barcode
+      additional_counts <- merged_df %>% group_by(original_barcode) %>% summarise(across(all_of(counts_columns), sum, .names = "{.col}_additional"))
+      
+      # Merge additional_counts into in_whitelist_df
+      in_whitelist_df <- in_whitelist_df %>% left_join(additional_counts, by=c("barcode"="original_barcode"))
+      
+      # Replace NA in additional counts with 0 and sum the counts
+      for (col in counts_columns) {
+        additional_col <- paste0(col, "_additional")
+        if (!(additional_col %in% names(in_whitelist_df))) {
+          # If the additional counts column doesn't exist, create it with zeros
+          in_whitelist_df[[additional_col]] <- rep(0, nrow(in_whitelist_df))
+        } else {
+          in_whitelist_df[[additional_col]][is.na(in_whitelist_df[[additional_col]])] <- 0
+        }
+        in_whitelist_df[[col]] <- in_whitelist_df[[col]] + in_whitelist_df[[additional_col]]
+      }
+      
+      # Remove the additional counts columns
+      in_whitelist_df <- in_whitelist_df[, !(names(in_whitelist_df) %in% paste0(counts_columns, "_additional"))]
+    }
+  }
+  
+  return(in_whitelist_df)
 }
 
 
@@ -149,12 +234,12 @@ compute_chisq_test <- function(df, barcode_col, test_cols, ctrl_cols) {
 barcode_volcano_plot <- function(data, sample_name, drug, sig_level = 0.05, fc_cutoff = 1) {
   
   # Calculate the number of enriched and depleted barcodes
-  enriched_count <- sum(data$logFC > fc_cutoff & data$p_value < sig_level)
-  depleted_count <- sum(data$logFC < -fc_cutoff & data$p_value < sig_level)
+  enriched_count <- sum(data$logFC > fc_cutoff & data$adjusted_p_value < sig_level)
+  depleted_count <- sum(data$logFC < -fc_cutoff & data$adjusted_p_value < sig_level)
   
   # Create the volcano plot
-  volcano_plot <- ggplot(data, aes(x = logFC, y = -log10(p_value))) +
-    geom_point_rast(size = 0.5, aes(color = ifelse(p_value < sig_level & (logFC > fc_cutoff | logFC < -fc_cutoff), "red", "black")), show.legend = FALSE) +
+  volcano_plot <- ggplot(data, aes(x = logFC, y = -log10(adjusted_p_value))) +
+    geom_point_rast(size = 0.5, aes(color = ifelse(adjusted_p_value < sig_level & (logFC > fc_cutoff | logFC < -fc_cutoff), "red", "black")), show.legend = FALSE) +
     scale_color_manual(values = c("black", "red")) +
     labs(title = paste(sample_name, drug), x = "logFC", y = "-log10(p-value)") +
     theme_bw() +
@@ -164,6 +249,7 @@ barcode_volcano_plot <- function(data, sample_name, drug, sig_level = 0.05, fc_c
     geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype = "dashed", color = "gray") +
     geom_hline(yintercept = -log10(sig_level), linetype = "dashed", color = "gray") +
     ylim(0, 30) +
+    
     # Add annotations for enriched and depleted counts
     annotate("text", x = -6.3, y = 28, label = paste("Depleted:", depleted_count), hjust = 0, size = 2.7) +
     annotate("text", x = 6.3, y = 28, label = paste("Enriched:", enriched_count), hjust = 1, size = 2.7)

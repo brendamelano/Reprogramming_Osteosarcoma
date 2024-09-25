@@ -22,6 +22,7 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS384_atr_final, barcode_col, test_cols, ctrl_cols)
 
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 # Merging the p-values to the final df
 OS384_atr_final <- merge(OS384_atr_final, p_values_df, by = 'barcode')
@@ -88,6 +89,7 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS384_cis_final, barcode_col, test_cols, ctrl_cols)
 
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 OS384_cis_final <- merge(OS384_cis_final, p_values_df, by = 'barcode')
 
@@ -150,6 +152,7 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS384_pf_final, barcode_col, test_cols, ctrl_cols)
 
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 OS384_pf_final <- merge(OS384_pf_final, p_values_df, by = 'barcode')
 
@@ -237,13 +240,14 @@ names(OS742_pf_final)[1] <- 'barcode'
 
 # Define the column names
 barcode_col <- "barcode"
-test_cols <- c("barcode_count_42_pf_1", "barcode_count_42_pf_2", "barcode_count_42_pf_3")
+test_cols <- c("barcode_count_pf_1", "barcode_count_pf_2", "barcode_count_pf_3")
 ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_count_ctrl_13_3")
 
 
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS742_pf_final, barcode_col, test_cols, ctrl_cols)
 
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 # reassigned this to cis_diff_merged in the forloop above
 OS742_pf_final <- merge(OS742_pf_final, p_values_df, by = 'barcode')
@@ -294,25 +298,25 @@ enriched_barcodes <- enriched_filtered_pf$barcode
 
 # changing the barcode type to DNA in order to later take the reverse complement
 depleted_barcodes <- dna(depleted_barcodes)
+enriched_barcodes <- dna(enriched_barcodes)
 
 
 # getting the reverse complement of the top barcodes
 rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
+rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
 
 
 # Creating a dataframe of the depleted barcodes
 rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
+rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
+
 
 # Writing the dropout barcodes to the single cell analysis folder
-write.csv(rc_depleted_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/15_day_treatments/depleted_barcodes_OS742_inVivo_LT.csv")
 
-# Exporting enriched barcodes
-enriched_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
+write.table(rc_enriched_barcodes$rc_enriched_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/15_day_treatments/enriched_barcodes_OS742_PF_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
-enriched_barcodes <- dna(enriched_barcodes)
-rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
-rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
-write.csv(rc_enriched_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS742/enriched_barcodes_OS742_inVivo_LT.csv")
+write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/15_day_treatments/depleted_barcodes_OS742_PF_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
+
 
 
 
@@ -337,6 +341,9 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS052_atr_final, barcode_col, test_cols, ctrl_cols)
+
+
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 
 # Reassigned this to cis_diff_merged in the forloop above
@@ -382,6 +389,7 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS052_pf_final, barcode_col, test_cols, ctrl_cols)
 
+p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
 
 # reassigned this to cis_diff_merged in the forloop above
 OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')

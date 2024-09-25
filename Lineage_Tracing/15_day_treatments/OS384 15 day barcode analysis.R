@@ -122,8 +122,6 @@ OS384_atr_final <-  merge(OS384_ctrl13_log_scaled, OS384_atr_log_scaled, by='bar
 # }
 
 
-# Performing cpm scaling with the function
-#OS384_atr_scaled <- cpm_scaling(OS384_atr_final)
 
 
 

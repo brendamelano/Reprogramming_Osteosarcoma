@@ -32,11 +32,15 @@ OS384_atr <-OS384_cis_atr[4:6,]
 
 
 # Computing the mean of the triplicates
-OS384_atr <- rbind(OS384_atr, OS384_atr %>% summarise_if(is.numeric, mean))
+OS384_atr <- OS384_cis_atr[4:6,]
+mean_values <- OS384_atr %>% summarise_if(is.numeric, mean)
+sd_values <- OS384_atr %>% summarise_if(is.numeric, sd)
 
+OS384_atr <- rbind(OS384_atr, mean_values, sd_values)
 
 # Naming the row with the mean values "mean"
 rownames(OS384_atr)[4] <- 'mean'
+rownames(OS384_atr)[5] <- 'sd'
 
 
 # Making a vector with ATR concentrations
@@ -51,7 +55,8 @@ names(OS384_atr) <- concentrations
 # Creating a dataframe with the cell counts for one observation - need to take average instead of just using one observation
 dose_response <- data.frame(
   conc = concentrations,
-  cell_count = t(OS384_atr)[,'mean']
+  cell_count = t(OS384_atr)[,'mean'],
+  sd = t(OS384_atr)[,'sd']  # Add the standard deviation
 )
 
 
@@ -106,6 +111,9 @@ IC50_curve_384_ATR <- ggplot(IC50_curve_384_ATR, aes(x = conc, y = predictions))
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         text = element_text(size = 10),
         plot.title = element_text(size = 10))  # Change size of title
+
+
+IC50_curve_384_ATR
 
 
 # Save the plot as an SVG file

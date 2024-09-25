@@ -1,15 +1,16 @@
+library(magrittr)
 library(car)
 library(drc)
 library(ggplot2)
-library(magrittr)
 library(dplyr)
 
 
 ######    PF    ########
 
+
 # reading in csv files
 # removed the first column
-OS052_pf <- read.csv("~/Desktop/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
+OS052_pf <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
 OS052_pf <- OS052_pf[3:5,3:11]
 
 
@@ -19,13 +20,12 @@ rownames(OS052_pf)[2] <- "Pf_2"
 rownames(OS052_pf)[3] <- "Pf_3"
 
 
-
 # computing the mean for the replicates
 OS052_pf <- rbind(OS052_pf, OS052_pf %>% summarise_if(is.numeric, mean))
 
 
+# Renaming the mean row
 rownames(OS052_pf)[4] <- 'mean'
-
 
 
 # making a vector with the concentrations
@@ -33,11 +33,8 @@ rownames(OS052_pf)[4] <- 'mean'
 concentrations <- c(2, 0.6666667, 0.2222222, 0.07407407, 0.02469136, 0.008230453, 0.002743484,0.0009144947, 0)
 
 
-
 # changing the column names to the concentrations 
 names(OS052_pf) <- concentrations
-
-
 
 
 # creating a dataframe with the cell counts for one observation - need to take average instead of just using one observation
@@ -93,6 +90,7 @@ coefs <- setNames(
   c("hill", "min_value", "max_value", "ec_50")
 )
 
+
 ic_50 <- with(
   as.list(coefs),
   exp(
@@ -100,15 +98,40 @@ ic_50 <- with(
   )
 )
 
+
 ic_50
 
 
 # Note the logged x-axis
 plot(curved_fit)
 
+# Note the logged x-axis
+IC50_curve_052_PF <- plot(curved_fit, 
+                           main = "OS052 PF IC50", 
+                           xlab = "Concentration (uM)", 
+                           ylab = "Fluorescent Intensity", 
+                           digits = 3)
+
+
+# changing the name of the 2nd column to predictions
+names(IC50_curve_052_PF)[2] <- 'predictions'
+
+
+IC50_curve_052_PF <- ggplot(IC50_curve_052_PF, aes(x = conc, y = predictions)) +
+  geom_line() +  # Add a line plot
+  scale_x_log10() +  # Set the x-axis to a logarithmic scale
+  labs(title = "OS052 CDK-4/6 inhibitor IC50", x = "Concentration (uM)", y = "Fluorescent Intensity") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10))  # Change size of title
+
+
+IC50_curve_052_PF
+
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/PF_IC50_052.svg", plot = curved_fit, device = "svg")
+ggsave("~/Desktop/PF_IC50_OS052.svg", plot = IC50_curve_052_PF, device = "svg", width = 2.5, height = 2.5)
 
 
 
@@ -214,7 +237,7 @@ plot(curved_fit)
 
 # reading in csv files
 # removed the first column
-OS052_atr <- read.csv("~/Desktop/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
+OS052_atr <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
 OS052_atr <- OS052_atr[18:20,3:11]
 
 
@@ -301,6 +324,35 @@ ic_50
 
 # Note the logged x-axis
 plot(curved_fit)
+
+
+# Note the logged x-axis
+IC50_curve_052_ATR <- plot(curved_fit, 
+                          main = "OS052 ATR IC50", 
+                          xlab = "Concentration (uM)", 
+                          ylab = "Fluorescent Intensity", 
+                          digits = 3)
+
+
+# changing the name of the 2nd column to predictions
+names(IC50_curve_052_ATR)[2] <- 'predictions'
+
+
+IC50_curve_052_ATR <- ggplot(IC50_curve_052_ATR, aes(x = conc, y = predictions)) +
+  geom_line() +  # Add a line plot
+  scale_x_log10() +  # Set the x-axis to a logarithmic scale
+  labs(title = "OS052 ATR inhibitor IC50", x = "Concentration (uM)", y = "Fluorescent Intensity") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        text = element_text(size = 10),
+        plot.title = element_text(size = 10))  # Change size of title
+
+
+IC50_curve_052_ATR
+
+ggsave("~/Desktop/ATR_IC50_OS052.svg", plot = IC50_curve_052_ATR, device = "svg", width = 2.5, height = 2.5)
+
+
 
 
 
