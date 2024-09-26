@@ -34,6 +34,7 @@ cell_barcodes <- paste(cell_barcodes, "-1", sep = "")
 # writing out the csv to upload into r on desktop
 write.csv(cell_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS384/depleted_cell_atr_barcodesOS384_inVivo.csv")
 
+
 write.csv(cell_barcodes, "~/Desktop/depleted_cell_atr_barcodesOS384_inVivo.csv")
 
 
