@@ -389,7 +389,10 @@ ctrl_cols <- c("barcode_count_ctrl_13_1", "barcode_count_ctrl_13_2", "barcode_co
 # Compute chi-squared tests
 p_values_df <- compute_chisq_test(OS052_pf_final, barcode_col, test_cols, ctrl_cols)
 
+
+# Adjusting the p-values based on BH correction
 p_values_df$adjusted_p_value <- p.adjust(p_values_df$p_value, method = "BH")
+
 
 # reassigned this to cis_diff_merged in the forloop above
 OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')
@@ -398,7 +401,7 @@ OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
 # test difference of logs as well
-OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_cpm_mean_pf / OS052_pf_final$barcode_cpm_mean_ctrl_13)
+OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_mean_pf_cpm / OS052_pf_final$barcode_mean_ctrl_13_cpm)
 
 
 # Set significance level and fold change cutoffs
@@ -419,37 +422,16 @@ ggsave("~/Desktop/OS052_PF_volcano.svg", plot = volcano_plot, width = 2.2, heigh
 
 
 
-# Identifying the depleted and enriched barcodes
-# filtering based on log fold change to identify positive fold change
-depleted_filtered_atr <- OS052_atr_final %>% filter(logFC < -2.5 & p_value < 0.05)
-enriched_filtered_atr <- OS052_atr_final %>% dplyr::filter(logFC > 1 & p_value < 0.05)
-depleted_filtered_pf <- OS052_pf_final %>% filter(logFC < -1 & p_value < 0.05)
+library(Biostrings)
 
-
-
-# making a vector of the top dropout barcodes for all the treatments
-depleted_barcodes_atr <- depleted_filtered_atr$barcode
-enriched_filtered_atr <- enriched_filtered_atr$barcode
-depleted_barcodes_pf <- depleted_filtered_pf$barcode
-depleted_barcodes_both <- c(depleted_barcodes_atr, depleted_barcodes_pf)
-
-
-# changing the barcode type to DNA in order to later take the reverse complement
-enriched_barcodes <- dna(enriched_filtered_atr)
-
-
-# Getting the reverse complement of the top barcodes
-rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
-rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
-
-
-# Creating a dataframe of the depleted barcodes
-rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
-rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
-
-
-# Writing the dropout barcodes to the single cell analysis folder as txt file to be uploaded onto wynton
-write.table(rc_enriched_barcodes$rc_enriched_barcodes, file = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/enriched_LT_barcodes_atr_OS052_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
+enriched_depleted_barcodes(
+  data = OS052_pf_final,
+  depleted_logFC_threshold = -1,
+  enriched_logFC_threshold = 1,
+  p_value_threshold = 0.05,
+  output_file_depleted = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt",
+  output_file_enriched = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/enriched_LT_barcodes_pf_OS052_LT.txt"
+)
 
 
 

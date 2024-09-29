@@ -4,6 +4,7 @@ library(tidyverse)
 library(ggplot2)
 library(tidyverse)
 #library(DESeq2)
+#library(DescTools)
 library(stats)
 library(dplyr)
 library(ggplot2)
@@ -15,7 +16,6 @@ library(mgcv) # GLMGAM regression
 library(purrr)
 library(grid)
 library(png)
-#library(DescTools)
 
 
 
@@ -44,6 +44,8 @@ OS052_ctrl_13_merged <- process_and_filter_barcodes(OS052_ctrl_13_merged, "ctrl_
 # Performing cpm scaling with the function
 OS052_ctrl_13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
 
+
+OS052_ctrl_13_scaled <- log_scales_and_means(OS052_ctrl_13_scaled, "ctrl_13")
 
 
 ############   ATR ANALYSIS     ##############
@@ -234,36 +236,12 @@ OS052_pf_scaled <- cpm_scaling(OS052_pf_merged)
 OS052_pf_ctrl13 <-  merge(OS052_ctrl_13_scaled, OS052_pf_scaled, by='barcode')
 
 
-# Computing logs of cpm values
-OS052_pf_log_scaled <- OS052_pf_ctrl13 %>% mutate(barcode_count_pf_1_log = log2(barcode_count_pf_1_scaled))
-OS052_pf_log_scaled <- OS052_pf_log_scaled %>% mutate(barcode_count_pf_2_log = log2(barcode_count_pf_2_scaled))
-OS052_pf_log_scaled <- OS052_pf_log_scaled %>% mutate(barcode_count_pf_3_log = log2(barcode_count_pf_3_scaled))
-
-
-# Computing the mean per barcode for the merged dataframe
-# Make sure that this does not have to be the mean
-OS052_pf_log_scaled <- OS052_pf_log_scaled %>% 
-  mutate(barcode_mean_pf_log = rowMeans(select(., c("barcode_count_pf_1_log", 
-                                                    "barcode_count_pf_2_log", 
-                                                    "barcode_count_pf_3_log"))))
-
-# Computing the mean per barcode for the merged dataframe
-OS052_pf_log_scaled <- OS052_pf_log_scaled %>% 
-  mutate(barcode_cpm_mean_pf = rowMeans(select(., c("barcode_count_pf_1_scaled", 
-                                                     "barcode_count_pf_2_scaled", 
-                                                     "barcode_count_pf_3_scaled"))))
-
-
-OS052_pf_log_scaled <- OS052_pf_log_scaled %>% 
-  mutate(barcode_cpm_mean_ctrl_13 = rowMeans(select(., c("barcode_count_ctrl_13_1_scaled", 
-                                                    "barcode_count_ctrl_13_2_scaled", 
-                                                    "barcode_count_ctrl_13_3_scaled"))))
-
+# Computing logs and means of barcode counts
+OS052_pf_log_scaled <- log_scales_and_means(OS052_pf_ctrl13, "pf")
 
 
 # Reassigning the test_sample
 OS052_pf_final <- OS052_pf_log_scaled
-
 
 
 

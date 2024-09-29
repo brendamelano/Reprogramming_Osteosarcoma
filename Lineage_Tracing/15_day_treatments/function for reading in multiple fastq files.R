@@ -257,3 +257,33 @@ barcode_volcano_plot <- function(data, sample_name, drug, sig_level = 0.05, fc_c
   return(volcano_plot)
 }
 
+enriched_depleted_barcodes <- function(data, 
+                                       depleted_logFC_threshold = NULL, 
+                                       enriched_logFC_threshold = NULL, 
+                                       p_value_threshold = 0.05, 
+                                       output_file_depleted = NULL, 
+                                       output_file_enriched = NULL) {
+  # Process depleted barcodes
+  if (!is.null(depleted_logFC_threshold) && !is.null(output_file_depleted)) {
+    depleted_filtered <- data %>%
+      filter(logFC < depleted_logFC_threshold & p_value < p_value_threshold)
+    depleted_barcodes <- depleted_filtered$barcode
+    depleted_barcodes_dna <- DNAStringSet(depleted_barcodes)
+    rc_depleted_barcodes <- reverseComplement(depleted_barcodes_dna)
+    write.table(as.character(rc_depleted_barcodes), 
+                file = output_file_depleted, 
+                quote = FALSE, row.names = FALSE, col.names = FALSE)
+  }
+  
+  # Process enriched barcodes
+  if (!is.null(enriched_logFC_threshold) && !is.null(output_file_enriched)) {
+    enriched_filtered <- data %>%
+      filter(logFC > enriched_logFC_threshold & p_value < p_value_threshold)
+    enriched_barcodes <- enriched_filtered$barcode
+    enriched_barcodes_dna <- DNAStringSet(enriched_barcodes)
+    rc_enriched_barcodes <- reverseComplement(enriched_barcodes_dna)
+    write.table(as.character(rc_enriched_barcodes), 
+                file = output_file_enriched, 
+                quote = FALSE, row.names = FALSE, col.names = FALSE)
+  }
+}
