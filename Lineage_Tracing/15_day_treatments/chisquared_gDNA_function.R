@@ -1,5 +1,5 @@
 library(ggrastr)
-
+library(Biostrings)
 
 ########    OS384  ATR-i   ##############
 
@@ -214,6 +214,7 @@ depleted_barcodes <- c(depleted_barcodes_atr)
 # changing the barcode type to DNA in order to later take the reverse complement
 depleted_barcodes <- dna(depleted_barcodes)
 
+
 # getting the reverse complement of the top barcodes
 rc_depleted_barcodes <- seq_complement(seq_reverse(depleted_barcodes))
 
@@ -225,8 +226,38 @@ rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
 # Writing the dropout barcodes to the single cell analysis folder
 write.csv(rc_depleted_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384_atr_depleted_barcodes_LT.csv")
 
+
 write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/OS384_atr_depleted_barcodes_LT.txt", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
+
+
+enriched_depleted_barcodes(
+  data = OS384_atr_final,
+  depleted_logFC_threshold = -1,
+  enriched_logFC_threshold = 1,
+  p_value_threshold = 0.05,
+  output_file_depleted = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_atr_OS384_LT.txt",
+  output_file_enriched = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/enriched_LT_barcodes_atr_OS384_LT.txt"
+)
+
+enriched_depleted_barcodes(
+  data = OS384_pf_final,
+  depleted_logFC_threshold = -1,
+  enriched_logFC_threshold = 1,
+  p_value_threshold = 0.05,
+  output_file_depleted = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_pf_OS384_LT.txt",
+  output_file_enriched = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/enriched_LT_barcodes_pf_OS384_LT.txt"
+)
+
+
+enriched_depleted_barcodes(
+  data = OS384_cis_final,
+  depleted_logFC_threshold = -1,
+  enriched_logFC_threshold = 1,
+  p_value_threshold = 0.05,
+  output_file_depleted = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_cis_OS384_LT.txt",
+  output_file_enriched = "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/enriched_LT_barcodes_cis_OS384_LT.txt"
+)
 
 
 ########    OS742     ##############
@@ -235,7 +266,7 @@ write.table(rc_depleted_barcodes$rc_depleted_barcodes, file = "~/Desktop/OS384_a
 # Initialize empty dataframe to store results
 p_values_df <- data.frame(barcode = character(), p_value = numeric())
 
-names(OS742_pf_final)
+
 names(OS742_pf_final)[1] <- 'barcode'
 
 # Define the column names
@@ -262,20 +293,11 @@ OS742_pf_final$logFC <- log2(OS742_pf_final$barcode_mean_pf_cpm / OS742_pf_final
 sig_level <- 0.05
 fc_cutoff <- 1
 
+volcano_plot <- barcode_volcano_plot(OS742_pf_final, sample_name = "OS742", drug = "CDK-4/6 inhibitor", sig_level = 0.05, fc_cutoff = 1)
+print(volcano_plot)
 
-# Create the volcano plot
-volcano_plot <- ggplot(OS742_pf_final, aes(x=logFC, y=-log10(p_value))) +
-  geom_point(size=0.5, aes(color=ifelse(p_value<sig_level & (logFC > 1 | logFC < -1), "red", "black")), show.legend = FALSE) +
-  scale_color_manual(values=c("black", "red")) +
-  labs(title="OS742 CDK 4/6-i treatment", x="logFC", y="-log10(p-value)") +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),  # Remove major gridlines
-        panel.grid.minor = element_blank()) +
-  ylim(0, 8) +
-  geom_vline(xintercept = c(-fc_cutoff, fc_cutoff), linetype="dashed", color="gray") +
-  geom_hline(yintercept=-log10(sig_level), linetype="dashed", color="gray") +
-  xlim(-2.5, 2.5)
 
+volcano_plot
 
 # Save the plot
 ggsave("~/Desktop/OS742_cdk_volcano_plot.svg", plot = volcano_plot, width = 2.4, height = 2.4, units = "in")
@@ -422,7 +444,7 @@ ggsave("~/Desktop/OS052_PF_volcano.svg", plot = volcano_plot, width = 2.2, heigh
 
 
 
-library(Biostrings)
+
 
 enriched_depleted_barcodes(
   data = OS052_pf_final,

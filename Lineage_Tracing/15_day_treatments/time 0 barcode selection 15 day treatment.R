@@ -185,17 +185,15 @@ names(OS742_ctrl_0_scaled)[2:4] <- c("barcode_count_ctrl_0_1", "barcode_count_ct
 names(OS742_ctrl_0_scaled)[5:7] <- c("barcode_count_ctrl_0_1_scaled", "barcode_count_ctrl_0_2_scaled", "barcode_count_ctrl_0_3_scaled")
 
 
-# Computing logs of cpm values
-OS742ctrl0_log_scaled <- OS742_ctrl_0_scaled %>% mutate(barcode_count_ctrl_0_1_log = log2(barcode_count_ctrl_0_1_scaled))
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_2_log = log2(barcode_count_ctrl_0_2_scaled))
-OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% mutate(barcode_count_ctrl_0_3_log = log2(barcode_count_ctrl_0_3_scaled))
+# Computing the logs of the cpm values
+OS742ctrl0_log_scaled <- compute_log2_scaled(OS742_ctrl_0_scaled)
 
 
 # Computing the mean log value per barcode for the merged dataframe
 OS742ctrl0_log_scaled <- OS742ctrl0_log_scaled %>% 
-  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_log", 
-                                                        "barcode_count_ctrl_0_2_log", 
-                                                        "barcode_count_ctrl_0_3_log"))))
+  mutate(barcode_log_mean_ctrl_0 = rowMeans(select(., c("barcode_count_ctrl_0_1_scaled_log", 
+                                                        "barcode_count_ctrl_0_2_scaled_log", 
+                                                        "barcode_count_ctrl_0_3_scaled_log"))))
 
 
 # Computing the mean log value per barcode for the merged dataframe
