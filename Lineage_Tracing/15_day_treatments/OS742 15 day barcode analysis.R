@@ -181,9 +181,9 @@ OS742_pf_final <- OS742_pf_ctrl13
 
 ## PLOTTING THE REPLICATES
 
-
+# 
 # # Perform regression analysis
-# model <- lm(barcode_count_pf_1_log ~ barcode_count_pf_2_log, data = OS742_pf_final)
+# model <- lm(barcode_count_pf_1_scaled_log ~ barcode_count_pf_2_scaled_log, data = OS742_pf_final)
 # 
 # 
 # # Extract r-squared value
@@ -191,21 +191,26 @@ OS742_pf_final <- OS742_pf_ctrl13
 # 
 # 
 # # Create the ggplot
-# OS742_pf_replicate <- ggplot(OS742_pf_final, aes(barcode_count_pf_1_log, barcode_count_pf_2_log)) +
-#   geom_point() +
+# OS742_pf_replicate <- ggplot(OS742_pf_final, aes(barcode_count_pf_1_scaled_log, barcode_count_pf_2_scaled_log)) +
+#   geom_point_rast() +
 #   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-#   xlab("Log Barcode Count - Replicate 1") +
-#   ylab("Log Barcode Count - Replicate 2") +
-#   geom_hex() +
-#   ggtitle("OS742 CDK 4/6 Barcode Count Correlation") +
-#   geom_text(x = min(OS742_pf_final$barcode_count_pf_1_log),
-#             y = max(OS742_pf_final$barcode_count_pf_2_log),
-#             label = paste("R-squared =", round(r_squared, 2), "\n"),
-#             hjust = 0, vjust = 1, parse = TRUE)
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),  
+#         plot.title = element_text(size = 7)) + 
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS742 Count Correlation CDK-4/6 i ") +
+#   annotate("text",
+#            x = min(OS742ctrl0_filtered$barcode_count_ctrl_0_1_scaled_log),
+#            y = max(OS742ctrl0_filtered$barcode_count_ctrl_0_2_scaled_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
 # 
-# ggsave("~/Desktop/OS742_pf_correlation.svg", plot = OS742_pf_replicate, device = "svg", width = 3, height = 3, units = "in")
-
+# 
+# OS742_pf_replicate
+# 
+# ggsave("~/Desktop/OS742_pf_correlation.svg", plot = OS742_pf_replicate, device = "svg", width = 2.2, height = 2.2, units = "in")
+# 
 
 
 ## running the function
@@ -250,10 +255,7 @@ OS742_pf_final <- OS742_pf_ctrl13
 
 
 
-
-
 ##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   #############
-
 
 
 
@@ -377,27 +379,130 @@ ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) +
 diff_only <- difference_4_drugs[,-1]
 
 
-######    summarizing barcode stats    ######
+######  QC analysis for all treatments together  ###
 
 
-# summarizing the mean of the barcodes for all conditions
-dropout_barcodes_stats <- diff_only %>% summarize_all(mean)
+
+# Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' from the atr dataset
+raw_counts_df <- OS742_pf_final %>%
+  select(-contains("log"), -contains("scaled"), 
+         -contains("mean"), -contains("StdDev"), -contains("Index"))
 
 
-# renaming the row to mean
-rownames(dropout_barcodes_stats)[1] <- "mean"
+
+# Setting the na values to 0
+raw_counts_df[is.na(raw_counts_df)] <- 0
 
 
-# computing the median z-score differences for all the treatment
-dropout_barcodes_median <- diff_only %>% summarize_all(median)
+raw_counts_df <- raw_counts_df[,-1]
 
 
-# binding the mean and median stats for all the conditionss
-dropout_barcodes_stats <- rbind(dropout_barcodes_stats, dropout_barcodes_median)
+# Compute the sum of each column
+sums <- colSums(raw_counts_df)
 
 
-# renaming the second row to median
-rownames(dropout_barcodes_stats)[2] <- "median"
+sums_df <- data.frame(
+  sample_type = names(sums),
+  total_sum = sums
+)
+
+
+# Modify the sample_type to remove "barcode_count_" and underscores
+sums_df$sample_type <- gsub("barcode_count_", "", sums_df$sample_type)
+sums_df$sample_type <- gsub("ctrl_13", "Ctrl-D13", sums_df$sample_type)  # Capitalize the "c" in "ctrl"
+sums_df$sample_type <- gsub("_", " ", sums_df$sample_type)
+
+
+# Replace 'pf' with 'CDK-4/6 i' and 'atr' with 'ATR i'
+sums_df$sample_type <- gsub("pf", "CDK-4/6 i", sums_df$sample_type)
+
+# Order the factor levels so that control samples appear first
+sums_df$sample_type <- factor(sums_df$sample_type, levels = sort(unique(sums_df$sample_type), decreasing = TRUE))
+
+# Create the plot with font sizes set to 8
+# Create the plot with a log scale on the y-axis and font sizes set to 8
+plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
+  geom_bar(stat = "identity") +
+  theme_bw(base_size = 8) +  # Set base font size to 8
+  labs(title = "OS052 Count sums", x = "Sample", y = "Total Counts (log scale)") +
+  scale_y_log10() +  # Set y-axis to log scale
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # Rotate X labels for readability, font size 8
+        axis.text.y = element_text(size = 8), # Y-axis text size 8
+        axis.title.x = element_text(size = 8), # X-axis title size 8
+        axis.title.y = element_text(size = 8), # Y-axis title size 8
+        plot.title = element_text(size = 8),   # Title font size 8
+        panel.grid.major = element_blank(),    # Remove major gridlines
+        panel.grid.minor = element_blank())    # Remove minor gridlines
+
+# Print the plot
+print(plot)
+
+
+ggsave("~/Desktop/OS052_total_counts.svg", plot, device = "svg", width = 2.5, height = 3)
+
+
+
+### Plotting mean and median
+
+
+data_long <- pivot_longer(raw_counts_df, 
+                          cols = starts_with("barcode_count"),
+                          names_to = "condition",
+                          values_to = "counts")
+
+
+# Cap data at 1,000
+data_long <- data_long %>%
+  mutate(counts = ifelse(counts > 1000, 1000, counts))
+
+
+# Calculate mean, median, and std
+summary_data <- data_long %>%
+  group_by(condition) %>%
+  summarise(mean = mean(counts, na.rm = TRUE),
+            median = median(counts, na.rm = TRUE),
+            std = sd(counts, na.rm = TRUE)) %>%
+  mutate(lower = mean - std, upper = mean + std)
+
+
+# Merge the summary back to the original long data for plotting
+data_long_summary <- merge(data_long, summary_data, by = "condition")
+
+
+# Plotting
+# Adjust x-axis labels
+data_long_summary$condition <- data_long_summary$condition %>% 
+  str_replace("barcode_count_", "") %>% # Remove "barcode_count_"
+  str_replace_all("_", " ") %>% # Replace underscores with spaces
+  str_replace("ctrl 13", "Ctrl Day-13") %>% # Change "ctrl 13" to "Ctrl Day-13"
+  str_replace("pf", "CDK-4/6 i") %>% # Change "pf" to "CDK-4/6 i"
+  str_replace("atr", "Atr i") %>% # Change "atr" to "Atr i"
+  str_to_title()  # Capitalize the first letter of each word
+
+
+# Plot
+p <- ggplot(data_long_summary, aes(x = condition, y = counts)) +
+  geom_jitter_rast(aes(color = "Data Points"), width = 0.2, height = 0, alpha = 0.5) + # Rasterized data points
+  geom_errorbar(aes(ymin = lower, ymax = upper, x = condition), width = 0.2) + # Error bars
+  geom_point(aes(y = median, color = "Median"), size = 1) + # Median points
+  scale_color_manual("", values = c("Median" = "red")) +
+  theme_bw(base_size = 8) + # Set base font size to 8
+  labs(title = "OS742 Count Distribution",
+       x = "Condition",
+       y = "Counts") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # X-axis text size
+        axis.text.y = element_text(size = 8), # Y-axis text size
+        axis.title = element_text(size = 8), # Axis title size
+        plot.title = element_text(size = 8), # Plot title size
+        legend.position = "right", # Move legend to the right
+        legend.text = element_text(size = 8), # Legend text size
+        legend.title = element_text(size = 8)) # Legend title size
+
+p
+
+# Save as SVG with rasterized points
+ggsave("~/Desktop/OS742_count_distribution.svg", plot = p, width = 2.5, height = 2.5)
+
 
 
 

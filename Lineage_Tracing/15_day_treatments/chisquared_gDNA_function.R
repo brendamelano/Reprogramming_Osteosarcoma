@@ -459,46 +459,17 @@ enriched_depleted_barcodes(
 
 ##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   ###
 
+depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt", header = F)
+depleted_pf <- depleted_pf[,1]
 
-
-# Concatenating the barcode lists and keeping the unique barcodes
-deplted_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
-
-
-# changing the barcode type to DNA in order to later take the reverse complement
-deplted_barcodes <- dna(deplted_barcodes)
-
-
-# getting the reverse complement of the top barcodes
-rc_depleted_barcodes <- seq_complement(seq_reverse(deplted_barcodes))
-
-
-# Creating a dataframe of the depleted barcodes
-rc_depleted_barcodes <- as.data.frame(rc_depleted_barcodes)
-
-
-# Writing the dropout barcodes to thw single cell analysis folder
-write.csv(rc_depleted_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/depleted_barcodes_OS384_inVivo_LT.csv")
-
-
-
-enriched_barcodes <- unique(c(cis_barcodes, pf_barcodes, atr_barcodes))
-enriched_barcodes <- dna(enriched_barcodes)
-rc_enriched_barcodes <- seq_complement(seq_reverse(enriched_barcodes))
-rc_enriched_barcodes <- as.data.frame(rc_enriched_barcodes)
-write.csv(rc_enriched_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/enriched_barcodes_OS384_inVivo_LT.csv")
-
-
-
-# Reading in the fastq files for read 1 and read 2 to combine the reads from the scRNAseq data
-read1_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/384-in-vivo_S1_L001_R1_001.fastq")
-read2_file <- read.delim("/Users/bmelano/Desktop/scRNAseq_LT_analysis/OS384_inVivo_scRNAseq_barcode_analysis/384-in-vivo_S1_L001_R2_001.fastq")
+depleted_atr <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_atr_OS052_LT.txt", header = F)
+depleted_atr <- depleted_atr[,1]
 
 
 # finding the barcodes that overlapped in selected barcodes for all samples
 venn.diagram(
-  x = list(cis_barcodes, pf_barcodes, atr_barcodes),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
+  x = list(depleted_pf, depleted_atr),
+  category.names = c( "CDK 4/6 i", "ATR i"),
   filename = '~/Desktop/overlapping_barcodes.svg',
   output=TRUE,
   height = 2150,

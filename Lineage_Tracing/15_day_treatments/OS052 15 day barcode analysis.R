@@ -122,30 +122,7 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 ## PLOTTING THE REPLICATES
 
 
-# # Perform regression analysis
-# model <- lm(barcode_count_ctrl_13_2_log ~ barcode_count_ctrl_13_3_log, data = OS052ctrl13_log_scaled)
-# 
-# 
-# # Extract r-squared value
-# r_squared <- summary(model)$r.squared
-# 
-# 
-# # Create the ggplot
-# OS384_D13_replicate <- ggplot(OS052ctrl13_log_scaled, aes(barcode_count_ctrl_13_2_log, barcode_count_ctrl_13_3_log)) +
-#   geom_point() +
-#   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS384 Barcode Count Correlation") +
-#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-#             label = paste("R-squared =", round(r_squared, 2), "\n"),
-#             hjust = 0, vjust = 1, parse = TRUE)
-# 
-# 
-# # Save the plot as an SVG file
-# ggsave("~/Desktop/OS384_D13_replicate.svg", plot = OS384_D13_replicate, device = "svg")
+
 
 
 
@@ -178,7 +155,7 @@ OS052_atr_final <- OS052_atr_log_scaled
 ### PLOTTING THE REPLICATES TO CHECK PRECISION
 
 # Perform regression analysis
-# model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = atr_diff_merged)
+# model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = OS052_atr_final)
 # 
 # 
 # # Extract r-squared and p-value
@@ -186,22 +163,33 @@ OS052_atr_final <- OS052_atr_log_scaled
 # 
 # 
 # # Create the ggplot
-# OS384_atr_replicate <- ggplot(atr_diff_merged, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
-#   geom_point() +
+# OS052_atr_replicate <- ggplot(OS052_atr_final, aes(barcode_count_atr_3_log, barcode_count_atr_1_log)) +
+#   geom_point_rast() +
 #   theme_bw() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-#   xlab("Log Transformed Barcode Count - Replicate 1") +
-#   ylab("Log Transformed Barcode Count - Replicate 2") +
-#   ggtitle("OS384 ATR Barcode Count Correlation") +
-#   geom_text(x = min(OS384ctrl13_log_scaled$barcode_count_ctrl_13_3_log),
-#             y = max(OS384ctrl13_log_scaled$barcode_count_ctrl_13_2_log),
-#             label = paste("R-squared =", round(r_squared, 2), "\n"),
-#             hjust = 0, vjust = 1, parse = TRUE)
-
-
-# Save the plot as an SVG file
-#ggsave("~/Desktop/OS384_atr_replicate.svg", plot = OS384_atr_replicate, device = "svg")
-
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),
+#         plot.title = element_text(size = 7)) +
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS052 Count Correlation ATR") +
+#   annotate("text",
+#            x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_scaled_log),
+#            y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_3_scaled_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
+# 
+# 
+# 
+# 
+# OS052_atr_replicate
+# 
+# 
+# ggsave("~/Desktop/OS052_atr_replicate.svg",
+#        plot = OS052_atr_replicate,
+#        device = "svg",
+#        width = 2.2,  # Width in inches
+#        height = 2.2, # Height in inches
+#        dpi = 300)  # DPI, optional for SVG
 
 
 
@@ -381,69 +369,75 @@ ggsave("~/Desktop/OS052_count_distribution.svg", plot = p, width = 3, height = 2
 
 # #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
 # 
+
+library(VennDiagram)
+
+depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt", header = F)
+depleted_pf <- depleted_pf[,1]
+
+depleted_atr <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_atr_OS052_LT.txt", header = F)
+depleted_atr <- depleted_atr[,1]
+
+
+# Specify the path to save the file on your Desktop
+output_file <- "~/Desktop/barcode_overlap_venn.svg"  # Modify path if necessary
+
+
+# Generate the Venn diagram
+venn.plot <- venn.diagram(
+  x = list("CDK-4/6 i depleted" = depleted_pf, "ATR i depleted" = depleted_atr),  # Names for each set
+  filename = output_file,  # Save file to Desktop,  # Prevent saving to file
+  fill = c("skyblue", "pink"),  # Colors for each circle
+  alpha = 0.5,  # Transparency of circles
+  cex = 1.5,  # Font size for numbers
+  cat.cex = 1.5,  # Font size for set names
+  cat.pos = c(-20, 20),  # Position of set names
+  main = "OS052 depleted barcode overlap",
+  main.cex = 2
+)
+
+
+# Plot the Venn diagram
+grid.draw(venn.plot)
+
+venn.diagram(
+  x = list("CDK-4/6 i depleted" = depleted_pf, "ATR i depleted" = depleted_atr),
+  filename = "~/Desktop/barcode_overlap_venn.svg",  # Specify the path to save the file
+  fill = c("skyblue", "pink"),
+  alpha = 0.5,
+  cex = 1.5,
+  cat.cex = 1.5,
+  cat.pos = c(-20, 20),
+  main = "OS052 depleted barcode overlap",
+  main.cex = 2
+)
+
+# Set SVG graphic device to save the plot correctly
+svg(filename = "~/Desktop/barcode_overlap_venn.svg", width = 7, height = 7)
+
+
+# install.packages("devtools")
+devtools::install_github("gaospecial/ggVennDiagram")
+library(ggVennDiagram)
+
+# Create a list for the Venn diagram
+barcode_lists <- list(
+  "CDK-4/6 i depleted" = depleted_pf,
+  "ATR i depleted" = depleted_atr
+)
+
+# Create the Venn diagram using ggVennDiagram
+venn_plot <- ggVennDiagram(barcode_lists, label_alpha = 0) +
+  scale_fill_gradient(low = "lightblue", high = "pink") +
+  theme(text = element_text(size = 12))
+
+
+# carrying out hypergeometric test for overlapping barcodes of all drugs
+1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
 # 
-# # finding the barcodes that overlapped in selected barcodes for all samples
-# venn.diagram(
-#   x = list(cis_barcodes, pf_barcodes, atr_barcodes),
-#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-#   filename = '~/Desktop/overlapping_barcodes.svg',
-#   output=TRUE,
-#   height = 2150,
-#   width = 2150,
-#   main = "OS384 Barcode Selection Overlap"
-# )
-# 
-# 
-# # Making a vector of the barcodes for all the treatments
-# cis_barcodes_all <- OS384_cis_final$barcode
-# pf_barcodes_all <- OS384_pf_final$barcode
-# atr_barcodes_all <- OS384_atr_final$barcode
-# 
-# 
-# # finding the barcodes that overlapped in selected barcodes for all samples
-# venn.diagram(
-#   x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-#   filename = '~/Desktop/overlapping_barcodes.svg',
-#   output=TRUE,
-#   height = 2150,
-#   width = 2150,
-#   main = "OS384 Barcode Selection Overlap"
-# )
-# 
-# venn.diagram(
-#   x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-#   category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-#   filename = '~/Desktop/overlapping_barcodes.png',
-#   output=TRUE,
-#   height = 2150,
-#   width = 2150,
-#   main = "OS384 Barcode Selection Overlap"
-# )
-# 
-# 
-# 
-# # carrying out hypergeometric test for overlapping barcodes of all drugs
-# 1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
-# 
-# 
-# ## checking correlation of z-score differences for different drugs
-# 
-# #merge all data frames in list
-# df_list_merged <- merge(z_score_diff_filtered_cis, z_score_diff_filtered_atr, by = 'barcode')
-# df_list_merged <- merge(df_list_merged, z_score_diff_filtered_pf)
-# 
-# 
-# # filtering the merged dataframe to only keep the columns that have the difference 
-# difference_4_drugs <- df_list_merged[,c(1, grep("zscore", names(df_list_merged)))]
-# 
-# 
-# # creating a scatter plot for the different drugs to see if the same barcodes are enriched or depleted with different drugs
-# ggplot(difference_4_drugs, aes(x = log2_diff__zscore_cis, y = log2_diff__zscore_pf)) + 
-#   geom_point() 
-# scale_y_continuous(trans='log10') +
-#   scale_x_continuous(trans='log10')
-# 
+
+
+
 # 
 # ### creating a list of the barcodes for dropouts based on log2 difference
 # 

@@ -126,35 +126,35 @@ OS384_atr_final <-  merge(OS384_ctrl13_log_scaled, OS384_atr_log_scaled, by='bar
 
 
 ### PLOTTING THE REPLICATES
-#Perform regression analysis
-model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_2_scaled_log, data = OS384_atr_final)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot
-OS384_atr_replicate <- ggplot(OS384_atr_final, aes(barcode_count_384_atr_2_scaled_log, barcode_count_384_atr_1_scaled_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 7),  
-        plot.title = element_text(size = 7)) +  
-  xlab("Replicate 1") +
-  ylab("Replicate 2") +
-  ggtitle("OS384 Count Correlation ATR-i") +
-  annotate("text",
-           x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
-           y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
-           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
-           hjust = 0, vjust = 1, size = 3)
-
-OS384_atr_replicate
-
-
-# Save the plot as an SVG file
-ggsave("~/Desktop/OS384_atr_replicate.png", plot = OS384_atr_replicate,  device = "png", width = 2.2, height = 2.2)
+# #Perform regression analysis
+# model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_2_scaled_log, data = OS384_atr_final)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot
+# OS384_atr_replicate <- ggplot(OS384_atr_final, aes(barcode_count_384_atr_2_scaled_log, barcode_count_384_atr_1_scaled_log)) +
+#   geom_point() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),  
+#         plot.title = element_text(size = 7)) +  
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS384 Count Correlation ATR-i") +
+#   annotate("text",
+#            x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
+#            y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
+# 
+# OS384_atr_replicate
+# 
+# 
+# # Save the plot as an SVG file
+# ggsave("~/Desktop/OS384_atr_replicate.png", plot = OS384_atr_replicate,  device = "png", width = 2.2, height = 2.2)
 
 
 
@@ -298,6 +298,7 @@ sums_df$sample_type <- sums_df$sample_type  %>%
   str_to_title() %>%# Capitalize the first letter of each word
   str_replace("Pf", "CDK-4/6")
 
+
 # Create the plot
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
@@ -315,10 +316,11 @@ plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
 # Print the plot
 print(plot)
 
+
 ggsave("~/Desktop/OS384_total_counts.svg", plot, device = "svg", width = 3, height = 3)
 
 
-##
+##  Count distribution
 
 # plotting mean and median
 data_long <- pivot_longer(raw_counts_df, 

@@ -93,35 +93,32 @@ time_0_barcodes <- OS384ctrl0_filtered$barcode
 
 
 # Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS384ctrl0_log_scaled)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot for replicate correlation in D0 control
-first_two_replicates_384_D0 <- ggplot(OS384ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
-  geom_point_rast() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 7),  
-        plot.title = element_text(size = 7)) +  
-  xlab("Replicate 1") +
-  ylab("Replicate 2") +
-  ggtitle("OS384 Count Correlation Day-0") +
-  annotate("text",
-           x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-           y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
-           hjust = 0, vjust = 1, size = 3)
-
-
-
+# model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS384ctrl0_log_scaled)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot for replicate correlation in D0 control
+# first_two_replicates_384_D0 <- ggplot(OS384ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
+#   geom_point_rast() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),  
+#         plot.title = element_text(size = 7)) +  
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS384 Count Correlation Day-0") +
+#   annotate("text",
+#            x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
+#            y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
 
 
 # Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_384_D0, device = "png", width = 2.2, height = 2.2)
+#ggsave("~/Desktop/first_two_replicates_384_D0.png", plot = first_two_replicates_384_D0, device = "png", width = 2.2, height = 2.2)
 
 
 
@@ -239,35 +236,36 @@ OS742_time_0_barcodes <- OS742ctrl0_filtered$V1
 
 ## performing regression for r^2 value of replicates ##
 
-
-# Perform regression analysis
-model <- lm(barcode_count_ctrl_0_3_log ~ barcode_count_ctrl_0_2_log, data = OS742ctrl0_filtered)
-
-
-# Extract r-squared and p-value
-r_squared <- summary(model)$r.squared
-
-
-# Create the ggplot for replicate correlation in D0 control
-first_two_replicates_742_D0 <- ggplot(OS742ctrl0_filtered, aes(barcode_count_ctrl_0_3_log, barcode_count_ctrl_0_2_log)) +
-  geom_point() +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        axis.title = element_text(size = 7),  
-        plot.title = element_text(size = 7)) +  
-  xlab("Replicate 1") +
-  ylab("Replicate 2") +
-  ggtitle("OS384 Count Correlation Day-0") +
-  annotate("text",
-           x = min(OS384ctrl0_log_scaled$barcode_count_ctrl_0_1_log),
-           y = max(OS384ctrl0_log_scaled$barcode_count_ctrl_0_2_log),
-           label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
-           hjust = 0, vjust = 1, size = 3)
-
-
-# Save the plot as an SVG file
-ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_742_D0, device = "svg", width = 4, height = 4, units = "in")
-
+# 
+# # Perform regression analysis
+# model <- lm(barcode_count_ctrl_0_1_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS742ctrl0_filtered)
+# 
+# 
+# # Extract r-squared and p-value
+# r_squared <- summary(model)$r.squared
+# 
+# 
+# # Create the ggplot for replicate correlation in D0 control
+# first_two_replicates_742_D0 <- ggplot(OS742ctrl0_filtered, aes(barcode_count_ctrl_0_1_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
+#   geom_point_rast() +
+#   theme_bw() +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#         axis.title = element_text(size = 7),  
+#         plot.title = element_text(size = 7)) +  
+#   xlab("Replicate 1") +
+#   ylab("Replicate 2") +
+#   ggtitle("OS742 Count Correlation Day-0") +
+#   annotate("text",
+#            x = min(OS742ctrl0_filtered$barcode_count_ctrl_0_1_scaled_log),
+#            y = max(OS742ctrl0_filtered$barcode_count_ctrl_0_2_scaled_log),
+#            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
+#            hjust = 0, vjust = 1, size = 3)
+# 
+# first_two_replicates_742_D0
+# 
+# # Save the plot as an SVG file
+# ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_742_D0, device = "svg", width = 2.2, height = 2.2, units = "in")
+# 
 
 
 
@@ -331,7 +329,7 @@ OS052_ctrl_0_merged <- OS052_ctrl_0_merged %>%
 
 # Defining a threshold for the standard deviation cutoff
 # Retry analysis with more stringent cutoff
-threshold <- 3500
+threshold <- 1500
 
 
 # Filtering based on the stdev threshhold
@@ -359,7 +357,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
 
 
 # Filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
-OS052ctrl0_filtered <- OS052ctrl0_log_scaled %>% dplyr::filter(barcode_cpm_mean_ctrl_0 > 80)
+OS052ctrl0_filtered <- OS052ctrl0_log_scaled %>% dplyr::filter(barcode_cpm_mean_ctrl_0 > 90)
 
 
 # Ordering based on the average cpm per barcode
@@ -372,8 +370,8 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 
 ## Plotting replicates
 
-
-#Perform regression analysis
+# 
+# #Perform regression analysis
 # model <- lm(barcode_count_ctrl_0_3_scaled_log ~ barcode_count_ctrl_0_2_scaled_log, data = OS052ctrl0_log_scaled)
 # 
 # 
@@ -383,30 +381,31 @@ OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_
 # 
 # # Create the ggplot for replicate correlation in D0 control
 # first_two_replicates_052_D0 <- ggplot(OS052ctrl0_log_scaled, aes(barcode_count_ctrl_0_3_scaled_log, barcode_count_ctrl_0_2_scaled_log)) +
-#   geom_point() +
+#   geom_point_rast() +
 #   theme_bw() +
 #   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#         axis.title = element_text(size = 7),  
-#         plot.title = element_text(size = 7)) +  
+#         axis.title = element_text(size = 7),
+#         plot.title = element_text(size = 7)) +
 #   xlab("Replicate 1") +
 #   ylab("Replicate 2") +
 #   ggtitle("OS052 Count Correlation Day-0") +
 #   annotate("text",
-#            x = min(OS384_atr_final$barcode_count_384_atr_2_scaled_log),
-#            y = max(OS384_atr_final$barcode_count_384_atr_1_scaled_log),
+#            x = min(OS052ctrl0_log_scaled$barcode_count_ctrl_0_2_scaled_log),
+#            y = max(OS052ctrl0_log_scaled$barcode_count_ctrl_0_3_scaled_log),
 #            label = as.expression(bquote(R^2 == .(round(r_squared, 2)))),
 #            hjust = 0, vjust = 1, size = 3)
 # 
 # 
 # first_two_replicates_052_D0
-
-
+# 
+# 
 # ggsave("~/Desktop/first_two_replicates_052_D0.svg",
 #        plot = first_two_replicates_052_D0,
 #        device = "svg",
-#        width = 4,  # Width in inches
-#        height = 4, # Height in inches
+#        width = 2.2,  # Width in inches
+#        height = 2.2, # Height in inches
 #        dpi = 300)  # DPI, optional for SVG
+
 
 
 
