@@ -367,42 +367,30 @@ ggsave("~/Desktop/OS052_count_distribution.svg", plot = p, width = 3, height = 2
 
 
 
-# #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tets   ########
+# #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tests   ########
 # 
 
 library(VennDiagram)
 
+
 depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt", header = F)
 depleted_pf <- depleted_pf[,1]
+
 
 depleted_atr <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_atr_OS052_LT.txt", header = F)
 depleted_atr <- depleted_atr[,1]
 
 
 # Specify the path to save the file on your Desktop
-output_file <- "~/Desktop/barcode_overlap_venn.svg"  # Modify path if necessary
+output_file <- "~/Desktop/barcode_overlap_venn.pdf"  # Modify path if necessary
 
+# Set PDF graphic device to save the plot correctly
+pdf(file = output_file, width = 7, height = 7)
 
-# Generate the Venn diagram
+# Generate the Venn diagram without saving to file
 venn.plot <- venn.diagram(
-  x = list("CDK-4/6 i depleted" = depleted_pf, "ATR i depleted" = depleted_atr),  # Names for each set
-  filename = output_file,  # Save file to Desktop,  # Prevent saving to file
-  fill = c("skyblue", "pink"),  # Colors for each circle
-  alpha = 0.5,  # Transparency of circles
-  cex = 1.5,  # Font size for numbers
-  cat.cex = 1.5,  # Font size for set names
-  cat.pos = c(-20, 20),  # Position of set names
-  main = "OS052 depleted barcode overlap",
-  main.cex = 2
-)
-
-
-# Plot the Venn diagram
-grid.draw(venn.plot)
-
-venn.diagram(
   x = list("CDK-4/6 i depleted" = depleted_pf, "ATR i depleted" = depleted_atr),
-  filename = "~/Desktop/barcode_overlap_venn.svg",  # Specify the path to save the file
+  filename = NULL,  # Do not save to file directly
   fill = c("skyblue", "pink"),
   alpha = 0.5,
   cex = 1.5,
@@ -412,29 +400,43 @@ venn.diagram(
   main.cex = 2
 )
 
-# Set SVG graphic device to save the plot correctly
-svg(filename = "~/Desktop/barcode_overlap_venn.svg", width = 7, height = 7)
+library(grid)
 
 
-# install.packages("devtools")
-devtools::install_github("gaospecial/ggVennDiagram")
-library(ggVennDiagram)
+# Draw the Venn diagram
+grid.draw(venn.plot)
 
-# Create a list for the Venn diagram
-barcode_lists <- list(
-  "CDK-4/6 i depleted" = depleted_pf,
-  "ATR i depleted" = depleted_atr
-)
-
-# Create the Venn diagram using ggVennDiagram
-venn_plot <- ggVennDiagram(barcode_lists, label_alpha = 0) +
-  scale_fill_gradient(low = "lightblue", high = "pink") +
-  theme(text = element_text(size = 12))
+# Close the graphics device
+dev.off()
 
 
 # carrying out hypergeometric test for overlapping barcodes of all drugs
 1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
 # 
+OS052_pf_final_length <- as.double(nrow(OS052_pf_final))
+OS052_atr_final_length <- as.double(nrow(OS052_atr_final))
+N <- OS052_pf_final_length + OS052_atr_final_length
+
+# 2. Calculate overlaps and non-overlaps
+x <- as.double(length(intersect(depleted_pf, depleted_atr)))
+b <- as.double(length(setdiff(depleted_pf, depleted_atr)))    # Depleted only in PF
+c <- as.double(length(setdiff(depleted_atr, depleted_pf)))    # Depleted only in ATR
+d <- N - x - b - c                                # Not depleted in either
+
+# Create the contingency table
+contingency_table <- matrix(c(x, b, c, d), nrow = 2,
+                            dimnames = list(
+                              "Depleted in ATR" = c("Yes", "No"),
+                              "Depleted in PF" = c("Yes", "No")
+                            ))
+print("Contingency Table:")
+print(contingency_table)
+
+# Perform Fisher's Exact Test
+test_result <- fisher.test(contingency_table, alternative = "greater")
+print("Fisher's Exact Test Result:")
+print(test_result)
+
 
 
 

@@ -260,6 +260,155 @@ enriched_depleted_barcodes(
 )
 
 
+### Overlapping barcode analysis
+
+library(VennDiagram)
+library(grid)
+
+
+# Read in depleted data frames
+depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_pf_OS384_LT.txt", header = FALSE)
+depleted_pf <- depleted_pf[,1]
+
+depleted_atr <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_atr_OS384_LT.txt", header = FALSE)
+depleted_atr <- depleted_atr[,1]
+
+depleted_cis <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/depleted_LT_barcodes_cis_OS384_LT.txt", header = FALSE)
+depleted_cis <- depleted_cis[,1]
+
+
+# Extract the Barcode columns (assuming the column is named "Barcode")
+total_pf <- OS384_pf_final$barcode
+total_atr <- OS384_atr_final$barcode
+total_cis <- OS384_cis_final$barcode
+
+# Create a named list of depleted data frames
+depleted_list <- list(
+  "CDK-4/6 i depleted" = depleted_pf,
+  "ATR i depleted" = depleted_atr,
+  "Cisplatin depleted" = depleted_cis
+)
+
+# Create a named list of total barcodes
+total_list <- list(
+  "CDK-4/6 i total" = total_pf,
+  "ATR i total" = total_atr,
+  "Cisplatin total" = total_cis
+)
+
+# Get all combinations of the data frames (pairs)
+depleted_pairs <- combn(names(depleted_list), 2, simplify = FALSE)
+
+# Initialize vectors to store p-values and pair identifiers
+p_values <- numeric(length(depleted_pairs))
+pair_names <- character(length(depleted_pairs))
+
+# Counter for indexing
+counter <- 1
+
+# Loop through each pair and perform statistical tests
+for (pair in depleted_pairs) {
+  # Extract the names and data for the pair
+  name1 <- pair[1]
+  name2 <- pair[2]
+  data1 <- depleted_list[[name1]]
+  data2 <- depleted_list[[name2]]
+  
+  # Extract total barcodes for each treatment
+  total1_name <- gsub("depleted", "total", name1)
+  total2_name <- gsub("depleted", "total", name2)
+  total1 <- total_list[[total1_name]]
+  total2 <- total_list[[total2_name]]
+  
+  # Calculate the total number of unique barcodes across both treatments
+  total_barcodes <- union(total1, total2)
+  N <- length(total_barcodes)
+  
+  # Calculate overlaps and counts
+  x <- as.numeric(length(intersect(data1, data2)))  # Overlap of depleted barcodes
+  b <- as.numeric(length(setdiff(data1, data2)))    # Depleted only in Treatment 1
+  c <- as.numeric(length(setdiff(data2, data1)))    # Depleted only in Treatment 2
+  d <- as.numeric(N - x - b - c)                    # Not depleted in either treatment
+  
+  # Create contingency table
+  contingency_table <- matrix(c(x, b, c, d), nrow = 2,
+                              dimnames = list(
+                                c("Depleted in Both", "Not Depleted in Both"),
+                                c(name1, name2)
+                              ))
+  
+  # Perform Fisher's Exact Test
+  test_result <- fisher.test(contingency_table, alternative = "greater")
+  p_value <- test_result$p.value
+  
+  # Store the p-value and pair name
+  p_values[counter] <- p_value
+  pair_names[counter] <- paste(name1, "vs", name2, sep = " ")
+  
+  # Increment counter
+  counter <- counter + 1
+}
+
+# Apply Benjamini-Hochberg correction
+adjusted_p_values <- p.adjust(p_values, method = "BH")
+
+
+# Create a data frame with results
+results <- data.frame(
+  Pair = pair_names,
+  Raw_P_Value = p_values,
+  Adjusted_P_Value = adjusted_p_values
+)
+
+# Print the results
+print(results)
+
+# Reset counter
+counter <- 1
+
+# Loop through each pair again to create Venn diagrams with adjusted p-values
+for (pair in depleted_pairs) {
+  # Extract the names and data for the pair
+  name1 <- pair[1]
+  name2 <- pair[2]
+  data1 <- depleted_list[[name1]]
+  data2 <- depleted_list[[name2]]
+  
+  # Get the adjusted p-value for this pair
+  adjusted_p_value <- adjusted_p_values[counter]
+  
+  # Generate the Venn diagram with adjusted p-value in the title
+  venn.plot <- venn.diagram(
+    x = list(data1, data2),
+    category.names = c(name1, name2),
+    filename = NULL,  # Do not save to file directly
+    fill = c("skyblue", "pink"),
+    alpha = 0.5,
+    cex = 1.5,
+    cat.cex = 1.5,
+    cat.pos = c(-20, 20),
+    main = paste("OS384 Depleted Barcode Overlap:\n", name1, "vs", name2, "\nAdjusted p-value =", signif(adjusted_p_value, 3)),
+    main.cex = 1.2
+  )
+  
+  # Define the output file path for this pair
+  # Replace spaces and slashes in names to create valid filenames
+  file_name_safe <- function(name) {
+    gsub("[ /]", "_", name)
+  }
+  output_file <- paste0("~/Desktop/", file_name_safe(name1), "_vs_", file_name_safe(name2), "_venn.pdf")
+  
+  # Save the Venn diagram to a PDF file
+  pdf(file = output_file, width = 7, height = 7)
+  grid.draw(venn.plot)
+  dev.off()
+  
+  # Increment counter
+  counter <- counter + 1
+}
+
+
+
 ########    OS742     ##############
 
 
@@ -456,58 +605,6 @@ enriched_depleted_barcodes(
 )
 
 
-
-##########    IDENTIFYING THE OVERLAPPING BARCODE DROPOUTS   ###
-
-depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt", header = F)
-depleted_pf <- depleted_pf[,1]
-
-depleted_atr <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_atr_OS052_LT.txt", header = F)
-depleted_atr <- depleted_atr[,1]
-
-
-# finding the barcodes that overlapped in selected barcodes for all samples
-venn.diagram(
-  x = list(depleted_pf, depleted_atr),
-  category.names = c( "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.svg',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-
-# Making a vector of the barcodes for all the treatments
-cis_barcodes_all <- OS384_cis_final$barcode
-pf_barcodes_all <- OS384_pf_final$barcode
-atr_barcodes_all <- OS384_atr_final$barcode
-
-
-# finding the barcodes that overlapped in selected barcodes for all samples
-venn.diagram(
-  x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.svg',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-venn.diagram(
-  x = list(cis_barcodes_all, pf_barcodes_all, atr_barcodes_all),
-  category.names = c("Cisplatin" , "CDK 4/6 i", "ATR i"),
-  filename = '~/Desktop/overlapping_barcodes.png',
-  output=TRUE,
-  height = 2150,
-  width = 2150,
-  main = "OS384 Barcode Selection Overlap"
-)
-
-
-# carrying out hypergeometric test for overlapping barcodes of all drugs
-1 - phyper(q= 15,m = 824,n = 88,k = 215, lower.tail = T, log.p = F)
 
 
 
