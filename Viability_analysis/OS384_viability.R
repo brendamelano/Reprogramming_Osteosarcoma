@@ -123,8 +123,7 @@ plot_viability_by_target <- function(data, targets = NULL, output_dir = "~/Deskt
   }
 }
 
-# Example usage:
-# Assuming your data frame is named OS384_NFE2L3_viability
+
 plot_viability_by_target(data = OS384_NFE2L3_viability, output_dir = "~/Desktop/")
 
 
@@ -199,6 +198,60 @@ ggplot(ratio_data, aes(x=gene, y=ratio, fill=gene)) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   scale_fill_manual(values = pastel_colors)
+
+
+### NR0B1    ######
+
+
+
+
+
+# Defining the colors for ctrl and NFE2L3 KD
+pastel_colors <- c("ctrl" = "#FFB3BA", "NR0B1" = "#A1C299")
+
+
+# 
+OS384_NR0B1_viability <- OS384_NFE2L3_viability %>%
+  filter(drug %in% c("ATR", "ctrl"), target %in% c("ctrl", "NR0B1"))
+
+
+# Computing the mean for each gene/drug pair
+summary_df <- OS384_NR0B1_viability %>%
+  group_by(drug, target) %>%
+  summarize(
+    mean_value = mean(value, na.rm = TRUE),
+    sd_value = sd(value, na.rm = TRUE)
+  )
+
+
+t_test_results <- t.test(value ~ target,
+                         data = filter(OS384_NR0B1_viability, drug == "ATR"),
+                         var.equal = TRUE)  # assuming equal variances for simplicity
+
+p_value <- t_test_results$p.value  # Extracting the p-value from the test results
+
+
+OS384_NR0B1 <- ggplot(summary_df, aes(x=drug, y=mean_value, fill=target)) +
+  geom_bar(stat="identity", position="dodge") +
+  geom_errorbar(aes(ymin=mean_value-sd_value, ymax=mean_value+sd_value), 
+                width=.2,                    # Adjust the width of the error bars
+                position=position_dodge(.9)) +
+  labs(title="OS384 Atr efficacy with NR0B1 KD", 
+       y="Fluorescent Measurement", x="Drug") +
+  
+  theme_bw() +  # Use theme_bw as a base theme
+  theme(panel.grid.major = element_blank(),  # Remove major grid lines
+        panel.grid.minor = element_blank()) +  # Remove minor grid lines
+  
+  scale_fill_manual(values = pastel_colors) +
+  
+  # Annotate with the p-value
+  annotate("text", x = 1, y = max(summary_df$mean_value + summary_df$sd_value), label = sprintf("p = %.3f", p_value))
+
+print(OS384_NR0B1)
+
+# Save the plot as SVG to the Desktop
+ggsave(filename = "~/Desktop/OS384_NR0B1.svg", plot = OS384_NR0B1, width = 4, height = 3, units = "in")
 
 
 
