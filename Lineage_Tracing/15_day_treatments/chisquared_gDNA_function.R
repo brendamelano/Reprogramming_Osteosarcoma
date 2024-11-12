@@ -412,6 +412,7 @@ for (pair in depleted_pairs) {
 ########    OS742     ##############
 
 
+
 # Initialize empty dataframe to store results
 p_values_df <- data.frame(barcode = character(), p_value = numeric())
 
@@ -527,6 +528,9 @@ OS052_atr_final <- merge(OS052_atr_final, p_values_df, by = 'barcode')
 OS052_atr_final$logFC <- log2(OS052_atr_final$barcode_cpm_mean_atr / OS052_atr_final$barcode_mean_ctrl13_cpm)
 
 
+write.csv(OS052_atr_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/processed_counts/OS052_atr_final.csv", row.names = TRUE)
+
+
 # Set significance level and fold change cutoffs
 sig_level <- 0.05
 fc_cutoff <- 1
@@ -573,6 +577,9 @@ OS052_pf_final <- merge(OS052_pf_final, p_values_df, by = 'barcode')
 # try computing with log values to see if the values in the middle with high p-values change
 # test difference of logs as well
 OS052_pf_final$logFC <- log2(OS052_pf_final$barcode_mean_pf_cpm / OS052_pf_final$barcode_mean_ctrl_13_cpm)
+
+
+write.csv(OS052_pf_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/processed_counts/OS052_pf_final.csv", row.names = TRUE)
 
 
 # Set significance level and fold change cutoffs
