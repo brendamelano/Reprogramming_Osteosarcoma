@@ -232,29 +232,29 @@ OS384ctrl0_log_scaled$Index <- seq_along(OS384ctrl0_log_scaled$barcode_cpm_mean_
 
 
 # Use ggplot to create the Ranked barcode plot
-p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
-  geom_line() + # Draw lines
-  rasterise(geom_point(), dpi = 300) + # Add rasterized points
-  scale_y_log10() + # Log scale for Y axis
-  labs(title = "OS384 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
-  theme_bw() + # Use a minimal theme for a cleaner look
-  theme(panel.grid.major = element_blank(), # Remove major grid lines
-        panel.grid.minor = element_blank(),
-        text = element_text(size = 10),
-        plot.title = element_text(size = 10)) # Remove minor grid lines
-
-p
+# p <- ggplot(OS384ctrl0_log_scaled, aes(x = Index, y = barcode_cpm_mean_ctrl_0)) +
+#   geom_line() + # Draw lines
+#   rasterise(geom_point(), dpi = 300) + # Add rasterized points
+#   scale_y_log10() + # Log scale for Y axis
+#   labs(title = "OS384 LT ranked barcode plot", y = "mean cpm", x = "Ranked LT barcodes") + # Add titles and labels
+#   theme_bw() + # Use a minimal theme for a cleaner look
+#   theme(panel.grid.major = element_blank(), # Remove major grid lines
+#         panel.grid.minor = element_blank(),
+#         text = element_text(size = 10),
+#         plot.title = element_text(size = 10)) # Remove minor grid lines
 # 
-# 
-# # Save the plot as SVG with specified dimensions
-ggsave("~/Desktop/OS384_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
+# p
+# # 
+# # 
+# # # Save the plot as SVG with specified dimensions
+# ggsave("~/Desktop/OS384_lineage_tracing_plot.svg", plot = p, width = 2.5, height = 2.5, units = "in")
 
 
 # filter barcodes to only keep those that have counts above 2 (first identified the elbow) by plotting the counts in order
 OS384ctrl0_filtered <- OS384ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 > 2)
 
 
-write.csv(OS384ctrl0_filtered, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/OS384_T0_processed_counts.csv", row.names = TRUE)
+#write.csv(OS384ctrl0_filtered, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/OS384_T0_processed_counts.csv", row.names = TRUE)
 
 
 # Renaming the barcode column
@@ -406,6 +406,9 @@ OS742ctrl0_log_scaled$Index <- seq_along(OS742ctrl0_log_scaled$barcode_cpm_mean_
 OS742ctrl0_filtered <- OS742ctrl0_log_scaled %>% filter(barcode_log_mean_ctrl_0 > 2)
 
 
+#write.csv(OS742ctrl0_filtered, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS742/OS742_T0_processed_counts.csv", row.names = TRUE)
+
+
 # Making the list of barcodes for OS384 time 0 for a whitelist
 OS742_time_0_barcodes <- OS742ctrl0_filtered$V1
 
@@ -471,94 +474,5 @@ OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
 # writing the csv to the single cell folder
 write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 
-##############
-
-
-### Preparing Rds files for mave - need to move to another script
-
-library(Matrix)
-
-# Read the count matrix
-count_matrix <- readMM('/Users/brendamelano/Desktop/OS152_count_matrix.mtx')
-
-# Read cell barcodes and gene names
-cell_barcodes <- readLines('/Users/brendamelano/Desktop/OS152_barcodes.tsv')
-gene_names <- readLines('/Users/brendamelano/Desktop/OS152genes.tsv')
-
-# Assign row and column names
-rownames(count_matrix) <- cell_barcodes
-colnames(count_matrix) <- gene_names
-
-# Save as .rds file
-saveRDS(count_matrix, '/Users/brendamelano/Desktop/Reprogramming_Osteosarcoma/plain_scRNAseq_analysis/Brenda_data_for_Mehran/OS152_gene_barcode_matrix.rds')
-
-# Check the dimensions
-dim(count_matrix)
-
-# View the first few rows and columns
-count_matrix[1:5, 1:5]
-
-# Verify row and column names
-head(rownames(count_matrix))
-head(colnames(count_matrix))
-
-
-## 384 ##
-
-
-
-# Read the count matrix
-count_matrix <- readMM('/Users/brendamelano/Desktop/OS384_count_matrix.mtx')
-
-# Read cell barcodes and gene names
-cell_barcodes <- readLines('/Users/brendamelano/Desktop/OS384_barcodes.tsv')
-gene_names <- readLines('/Users/brendamelano/Desktop/OS384_genes.tsv')
-
-# Assign row and column names
-rownames(count_matrix) <- cell_barcodes
-colnames(count_matrix) <- gene_names
-
-# Save as .rds file
-saveRDS(count_matrix, '/Users/brendamelano/Desktop/Reprogramming_Osteosarcoma/plain_scRNAseq_analysis/Brenda_data_for_Mehran/OS384_gene_barcode_matrix.rds')
-
-# Check the dimensions
-dim(count_matrix)
-
-# View the first few rows and columns
-count_matrix[1:5, 1:5]
-
-# Verify row and column names
-head(rownames(count_matrix))
-head(colnames(count_matrix))
-
-
-
-## 742 ##
-
-
-
-# Read the count matrix
-count_matrix <- readMM('/Users/brendamelano/Desktop/OS742_count_matrix.mtx')
-
-# Read cell barcodes and gene names
-cell_barcodes <- readLines('/Users/brendamelano/Desktop/OS742_barcodes.tsv')
-gene_names <- readLines('/Users/brendamelano/Desktop/OS742_genes.tsv')
-
-# Assign row and column names
-rownames(count_matrix) <- cell_barcodes
-colnames(count_matrix) <- gene_names
-
-# Save as .rds file
-saveRDS(count_matrix, '/Users/brendamelano/Desktop/Reprogramming_Osteosarcoma/plain_scRNAseq_analysis/Brenda_data_for_Mehran/OS742_gene_barcode_matrix.rds')
-
-# Check the dimensions
-dim(count_matrix)
-
-# View the first few rows and columns
-count_matrix[1:5, 1:5]
-
-# Verify row and column names
-head(rownames(count_matrix))
-head(colnames(count_matrix))
 
 

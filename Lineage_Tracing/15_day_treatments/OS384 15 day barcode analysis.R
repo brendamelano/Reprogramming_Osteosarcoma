@@ -123,8 +123,6 @@ OS384_atr_final <-  merge(OS384_ctrl13_log_scaled, OS384_atr_log_scaled, by='bar
 
 
 
-
-
 ### PLOTTING THE REPLICATES
 # #Perform regression analysis
 # model <- lm(barcode_count_384_atr_1_scaled_log ~ barcode_count_384_atr_2_scaled_log, data = OS384_atr_final)
@@ -211,6 +209,7 @@ result_list <- lapply(file_paths, process_file)
 OS384_cis_merged <- Reduce(function(x, y) merge(x, y, by = "V1"), result_list)
 
 
+# Filtering based on the T0 barcodes
 OS384_cis_merged <- process_and_filter_barcodes(OS384_cis_merged, "cis", time_0_barcodes)
 
 

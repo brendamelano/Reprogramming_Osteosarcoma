@@ -32,6 +32,10 @@ OS384_atr_final <- merge(OS384_atr_final, p_values_df, by = 'barcode')
 # try computing with log values to see if the values in the middle with high p-values change
 OS384_atr_final$logFC <- log2(OS384_atr_final$barcode_mean_atr_cpm / OS384_atr_final$barcode_mean_ctrl_13_cpm)
 
+write.csv(OS384_atr_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/final_process_LT_counts/OS384_atr_final.csv", row.names = TRUE)
+
+
+
 
 # Set significance level and fold change cutoffs
 sig_level <- 0.05
@@ -99,6 +103,10 @@ OS384_cis_final <- merge(OS384_cis_final, p_values_df, by = 'barcode')
 OS384_cis_final$logFC <- log2(OS384_cis_final$barcode_mean_cis_cpm / OS384_cis_final$barcode_mean_ctrl_13_cpm)
 
 
+write.csv(OS384_cis_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/final_process_LT_counts/OS384_cis_final.csv", row.names = TRUE)
+
+
+
 # Set significance level and fold change cutoffs
 sig_level <- 0.05
 fc_cutoff <- 1
@@ -160,6 +168,9 @@ OS384_pf_final <- merge(OS384_pf_final, p_values_df, by = 'barcode')
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
 OS384_pf_final$logFC <- log2(OS384_pf_final$barcode_mean_pf_cpm / OS384_pf_final$barcode_mean_ctrl_13_cpm)
+
+write.csv(OS384_pf_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS384/final_process_LT_counts/OS384_pf_final.csv", row.names = TRUE)
+
 
 
 # Set significance level and fold change cutoffs
@@ -282,6 +293,7 @@ total_pf <- OS384_pf_final$barcode
 total_atr <- OS384_atr_final$barcode
 total_cis <- OS384_cis_final$barcode
 
+
 # Create a named list of depleted data frames
 depleted_list <- list(
   "CDK-4/6 i depleted" = depleted_pf,
@@ -296,8 +308,76 @@ total_list <- list(
   "Cisplatin total" = total_cis
 )
 
+
+######
+
+
+
+# Define custom positions and distances for category labels
+category_positions <- c(-15, 15, 240)  # Positions in degrees
+category_distances <- c(0.08, 0.08, 0.1)  # Distances from the circles
+
+# Create the Venn diagram with adjusted parameters
+venn.plot <- venn.diagram(
+  x = depleted_list,
+  category.names = names(depleted_list),
+  filename = NULL,  # Do not save to file directly
+  fill = c("skyblue", "pink", "yellow"),
+  alpha = 0.5,
+  cex = 1.5,
+  cat.cex = 1.5,
+  cat.pos = category_positions,
+  cat.dist = category_distances,
+  cat.just = list(c(0.5, 1), c(0.5, 1), c(0.5, 1)),
+  margin = 0.1,  # Increase the margin
+  main = "OS384 Depleted Barcode Overlap",
+  main.cex = 1.2,
+  rescale = FALSE  # Prevent automatic rescaling
+)
+
+# Increase the size of the PDF device to accommodate labels
+pdf(file = "~/Desktop/OS384_Depleted_Barcode_Overlap_Venn.pdf", width = 7, height = 7)
+
+# Draw the Venn diagram
+grid.draw(venn.plot)
+
+# Close the PDF device
+dev.off()
+
+# Statistical analysis using hypergeometric test
+# Calculate the total number of unique barcodes across all treatments
+total_barcodes <- union(union(total_pf, total_atr), total_cis)
+N <- length(total_barcodes)
+
+# Calculate the sizes of each depleted set
+k1 <- length(depleted_pf)
+k2 <- length(depleted_atr)
+k3 <- length(depleted_cis)
+
+# Number of barcodes depleted in all three treatments
+overlap_all <- length(Reduce(intersect, depleted_list))
+
+# For hypergeometric test, we need to define the number of successes in the population (k1)
+# and the number of draws (k2), and the number of successes in draws (overlap_all)
+
+# Perform the hypergeometric test
+p_value <- phyper(overlap_all - 1, k1, N - k1, k2, lower.tail = FALSE)
+
+# Adjust the p-value (optional)
+adjusted_p_value <- p.adjust(p_value, method = "BH")
+
+# Print the results
+cat("Number of barcodes depleted in all three treatments:", overlap_all, "\n")
+cat("Hypergeometric test p-value:", p_value, "\n")
+cat("Adjusted p-value:", adjusted_p_value, "\n")
+
+##########
+
+
+
 # Get all combinations of the data frames (pairs)
 depleted_pairs <- combn(names(depleted_list), 2, simplify = FALSE)
+
 
 # Initialize vectors to store p-values and pair identifiers
 p_values <- numeric(length(depleted_pairs))
@@ -437,6 +517,8 @@ OS742_pf_final <- merge(OS742_pf_final, p_values_df, by = 'barcode')
 # computing log fold change for different samples
 # try computing with log values to see if the values in the middle with high p-values change
 OS742_pf_final$logFC <- log2(OS742_pf_final$barcode_mean_pf_cpm / OS742_pf_final$barcode_mean_ctrl13_cpm)
+
+write.csv(OS742_pf_final, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS742/OS742_pf_final.csv", row.names = TRUE)
 
 
 # Set significance level and fold change cutoffs
@@ -613,51 +695,6 @@ enriched_depleted_barcodes(
 
 
 
-
-
-
-### creating a list of the barcodes for dropouts based on log2 difference
-
-
-# pivoting the data
-dropout_barcodes_pivot <- difference_4_drugs %>%
-  pivot_longer(colnames(difference_4_drugs)[2:5]) %>%
-  as.data.frame()
-
-
-# plotting the barcodes that have the highest dropouts in all 4 samples
-ggplot(dropout_barcodes_pivot, aes(x = value)) + 
-  geom_histogram(bins = 200) +
-  facet_wrap(~ name) +
-  scale_x_continuous(trans='log10')
-
-
-# creatina a list of the comparisons
-my_comparisons <- list( c("diference_atr, diference_cis"), c("diference_atr, diference_dox"), c("diference_atr, diference_pf") )
-
-
-#
-dropout_barcodes_pivot_filtered <- dropout_barcodes_pivot %>% filter(name %in% c("log2_diff_zscore_atr", "log2_diff_zscore_cis"))
-
-
-# desktop
-ggplot(dropout_barcodes_pivot_filtered, aes(x = name, y = value)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans='log10')  +
-  stat_compare_means() +
-  stat_compare_means() 
-
-
-ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans='log10')  +
-  stat_compare_means() +
-  stat_compare_means() 
-
-
-
-# creating a dataframe without the barcodes
-diff_only <- difference_4_drugs[,-1]
 
 
 

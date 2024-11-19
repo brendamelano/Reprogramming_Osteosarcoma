@@ -17,6 +17,7 @@ library(broom)
 # Reading in the data
 OS833_NFE2L3_viability <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Viability_analysis/Processed_2024_04_23_833_NFE2L3_viability_15_day.csv")
 
+
 # Define the plotting function
 plot_viability_by_target <- function(data, targets = NULL, output_dir = "~/Desktop/") {
   
