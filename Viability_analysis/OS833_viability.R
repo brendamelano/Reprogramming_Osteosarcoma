@@ -16,7 +16,7 @@ library(broom)
 
 # Reading in the data
 OS833_NFE2L3_viability <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/Viability_analysis/Processed_2024_04_23_833_NFE2L3_viability_15_day.csv")
-
+OS833_NFE2L3_viability$drug[25:36] <- "CDK4/6"
 
 # Define the plotting function
 plot_viability_by_target <- function(data, targets = NULL, output_dir = "~/Desktop/") {
@@ -86,10 +86,11 @@ plot_viability_by_target <- function(data, targets = NULL, output_dir = "~/Deskt
     p_label_df <- summary_df %>%
       group_by(drug) %>%
       summarize(
-        p_value = first(p_value),
+        p_value = ifelse(length(na.omit(p_value)) > 0, na.omit(p_value)[1], NA_real_),
         y_position = max(mean_value + sd_value, na.rm = TRUE),
         .groups = 'drop'
       )
+    
     
     # Create the plot
     p <- ggplot(summary_df, aes(x = drug, y = mean_value, fill = target)) +
@@ -124,14 +125,13 @@ plot_viability_by_target <- function(data, targets = NULL, output_dir = "~/Deskt
   }
 }
 
+
 names(OS833_NFE2L3_viability)[2] <- "target"
 OS833_NFE2L3_viability$target[OS833_NFE2L3_viability$target == 'nfe2l3'] <- 'NFE2L3'
 
 
 # Assuming your data frame is named OS384_NFE2L3_viability
 plot_viability_by_target(data = OS833_NFE2L3_viability, output_dir = "~/Desktop/")
-
-
 
 
 
