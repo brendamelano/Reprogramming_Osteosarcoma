@@ -10,7 +10,7 @@ library(dplyr)
 
 # reading in csv files
 # removed the first column
-OS052_pf <- read.csv("~/Desktop/OS_IC50_analysis/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
+OS052_pf <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/IC50_analysis/IC50_data/2023_01_31_OS152_052_833_cis_atr_pf_15day.csv", header = F)
 OS052_pf <- OS052_pf[3:5,3:11]
 
 

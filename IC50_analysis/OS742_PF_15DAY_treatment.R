@@ -7,7 +7,7 @@ library(dplyr)
 
 # reading in csv files
 # for some reason only the 1st two rows are read in so I manually add the 3rd row below
-OS742_pf <- read.csv("~/Desktop/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/741_pf_15day - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", nrow = 2, header = F)
+OS742_pf <- read.csv("~/Desktop/Reprogramming_Osteosarcoma/IC50_analysis/IC50_data/2020_01_04_15day_holiday_384_742_cis_atr_pf/741_pf_15day - 2023_01_03_384_742_CIS_ATR_PF_15day_IC50.csv", nrow = 2, header = F)
 
 
 # creating a row for the 3rd row vectors
