@@ -69,9 +69,18 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled %>%
                                                         "barcode_count_ctrl_0_3_scaled"))))
 
 
-# 
+# Filtering barcodes with low counts to keep likely barcodes
 OS052ctrl0_filtered <- OS052ctrl0_log_scaled %>% dplyr::filter(barcode_cpm_mean_ctrl_0 > 90)
 
+
+# Renaming the barcode column
+names(OS052ctrl0_filtered)[1] <- 'barcode'
+
+
+# Making the list of barcodes for OS384 time 0 for a whitelist
+OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
+
+## Prepping data for visualization
 
 # Ordering based on the average cpm per barcode
 OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled[order(-OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0), ]
@@ -81,7 +90,7 @@ OS052ctrl0_log_scaled <- OS052ctrl0_log_scaled[order(-OS052ctrl0_log_scaled$barc
 OS052ctrl0_log_scaled$Index <- seq_along(OS052ctrl0_log_scaled$barcode_cpm_mean_ctrl_0)
 
 
-write.csv(OS052ctrl0_log_scaled, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/processed_counts/OS052_T0_counts.csv", row.names = TRUE)
+#write.csv(OS052ctrl0_log_scaled, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/OS052_gDNA_barcodes/processed_counts/OS052_T0_counts.csv", row.names = TRUE)
 
 
 
@@ -142,13 +151,6 @@ write.csv(OS052ctrl0_log_scaled, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_T
 # # Save the plot as SVG with specified dimensions
 # ggsave("~/Desktop/OS052_lineage_tracing_plot.svg", plot = plot, width = 2.5, height = 2.5, units = "in")
 
-
-# Renaming the barcode column
-names(OS052ctrl0_filtered)[1] <- 'barcode'
-
-
-# Making the list of barcodes for OS384 time 0 for a whitelist
-OS052_time_0_barcodes <- OS052ctrl0_filtered$barcode
 
 
 # ###   Filtering barcodes for trajectory visualization   ###
@@ -445,34 +447,5 @@ OS742_time_0_barcodes <- OS742ctrl0_filtered$V1
 # # Save the plot as an SVG file
 # ggsave("~/Desktop/first_two_replicates_742_D0.svg", plot = first_two_replicates_742_D0, device = "svg", width = 2.2, height = 2.2, units = "in")
 # 
-
-
-
-###   Filtering barcodes for trajectory visualization   ###
-
-
-# getting the 10% quantiles
-#quantile(OS384_ctrl_0_unique$barcode_count_ctrl_0, probs = seq(0, 1, 0.1))
-
-
-# fitering the barcodes for those with a high count for trajectory analysis
-OS384_ctrl_0_trajectory <- OS384ctrl0_filtered %>% filter(barcode_mean_ctrl_0 > 10)
-
-
-# converting the barcodes to dna object in order to get the reverse complement
-OS384_barcodes_trajectory <- dna(OS384_ctrl_0_trajectory$barcode)
-
-
-# getting the reverse complement of the top barcodes
-rc_384_trajectory_barcodes <- seq_complement(seq_reverse(OS384_barcodes_trajectory))
-
-
-# creating a dataframe of the reverse complement of the barcodes that should be used to study trajectories
-OS384_trajectory_barcodes <- as.data.frame(rc_384_trajectory_barcodes)
-
-
-# writing the csv to the single cell folder
-write.csv(OS384_trajectory_barcodes, "~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
-
 
 

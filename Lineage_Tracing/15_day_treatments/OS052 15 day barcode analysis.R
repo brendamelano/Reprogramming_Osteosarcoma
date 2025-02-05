@@ -2,14 +2,10 @@ library(VennDiagram)
 library(stringdist)
 library(tidyverse)
 library(ggplot2)
-library(tidyverse)
 #library(DESeq2)
 #library(DescTools)
 library(stats)
 library(dplyr)
-library(ggplot2)
-library(ggrastr)
-library(stringr)
 library(tidyr)
 library(ggpubr)
 library(mgcv) # GLMGAM regression
@@ -45,7 +41,9 @@ OS052_ctrl_13_merged <- process_and_filter_barcodes(OS052_ctrl_13_merged, "ctrl_
 OS052_ctrl_13_scaled <- cpm_scaling(OS052_ctrl_13_merged)
 
 
+# Computing logs and means
 OS052_ctrl_13_scaled <- log_scales_and_means(OS052_ctrl_13_scaled, "ctrl_13")
+
 
 
 ############   ATR ANALYSIS     ##############
@@ -96,12 +94,10 @@ OS052_atr_scaled <- cpm_scaling(OS052_atr_merged)
 OS052_atr_ctrl13 <-  merge(OS052_ctrl_13_scaled, OS052_atr_scaled, by='barcode')
 
 
-
 # Computing logs of cpm values
 OS052ctrl13_log_scaled <- OS052_atr_ctrl13 %>% mutate(barcode_count_ctrl_13_1_log = log2(barcode_count_ctrl_13_1_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_2_log = log2(barcode_count_ctrl_13_2_scaled))
 OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>% mutate(barcode_count_ctrl_13_3_log = log2(barcode_count_ctrl_13_3_scaled))
-
 
 
 # Computing logs of cpm values
@@ -120,7 +116,6 @@ OS052ctrl13_log_scaled <- OS052ctrl13_log_scaled %>%
 
 
 ## PLOTTING THE REPLICATES
-
 
 
 
@@ -233,14 +228,15 @@ OS052_pf_final <- OS052_pf_log_scaled
 
 
 
-######  QC analysis for all treatments together  ###
+######  QC analysis for all treatments  ######
 
 
 
 # Subset the dataframe to exclude columns with 'log', 'scaled', 'mean'
 raw_counts_df_pf <- OS052_pf_final %>%
   select(-contains("log"), -contains("scaled"), 
-         -contains("mean"), -contains("StdDev"), -contains("Index"))
+         -contains("mean"), -contains("StdDev"), 
+         -contains("Index"))
 
 
 # Subset the dataframe to exclude columns with 'log', 'scaled', 'mean' from the atr dataset
@@ -252,8 +248,10 @@ raw_counts_df_atr <- OS052_atr_final %>%
 # Merging the raw counts from the atr and pf treatment
 raw_counts_df <- left_join(raw_counts_df_atr, raw_counts_df_pf)
 
+
 # Setting the na values to 0
 raw_counts_df[is.na(raw_counts_df)] <- 0
+
 
 
 raw_counts_df <- raw_counts_df[,-1]
@@ -268,9 +266,12 @@ sums_df <- data.frame(
   total_sum = sums
 )
 
+
 # Modify the sample_type to remove "barcode_count_" and underscores
 sums_df$sample_type <- gsub("barcode_count_", "", sums_df$sample_type)
-sums_df$sample_type <- gsub("ctrl_13", "Ctrl-D13", sums_df$sample_type)  # Capitalize the "c" in "ctrl"
+
+# Capitalize the "c" in "ctrl"
+sums_df$sample_type <- gsub("ctrl_13", "Ctrl-D13", sums_df$sample_type)
 sums_df$sample_type <- gsub("_", " ", sums_df$sample_type)
 
 # Replace 'pf' with 'CDK-4/6 i' and 'atr' with 'ATR i'
@@ -284,14 +285,14 @@ sums_df$sample_type <- factor(sums_df$sample_type, levels = sort(unique(sums_df$
 # Create the plot with a log scale on the y-axis and font sizes set to 8
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
-  theme_bw(base_size = 8) +  # Set base font size to 8
+  theme_bw(base_size = 10) +  # Set base font size to 8
   labs(title = "OS052 Count sums", x = "Sample", y = "Total Counts (log scale)") +
   scale_y_log10() +  # Set y-axis to log scale
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # Rotate X labels for readability, font size 8
-        axis.text.y = element_text(size = 8), # Y-axis text size 8
-        axis.title.x = element_text(size = 8), # X-axis title size 8
-        axis.title.y = element_text(size = 8), # Y-axis title size 8
-        plot.title = element_text(size = 8),   # Title font size 8
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10), 
+        axis.title.x = element_text(size = 11),
+        axis.title.y = element_text(size = 11),
+        plot.title = element_text(size = 11),  
         panel.grid.major = element_blank(),    # Remove major gridlines
         panel.grid.minor = element_blank())    # Remove minor gridlines
 
@@ -438,54 +439,3 @@ print("Fisher's Exact Test Result:")
 print(test_result)
 
 
-
-
-# 
-# ### creating a list of the barcodes for dropouts based on log2 difference
-# 
-# 
-# # pivoting the data
-# dropout_barcodes_pivot <- difference_4_drugs %>%
-#   pivot_longer(colnames(difference_4_drugs)[2:5]) %>%
-#   as.data.frame()
-# 
-# 
-# # plotting the barcodes that have the highest dropouts in all 4 samples
-# ggplot(dropout_barcodes_pivot, aes(x = value)) + 
-#   geom_histogram(bins = 200) +
-#   facet_wrap(~ name) +
-#   scale_x_continuous(trans='log10')
-# 
-# 
-# # creating a list of the comparisons
-# my_comparisons <- list( c("diference_atr, diference_cis"), c("diference_atr, diference_dox"), c("diference_atr, diference_pf") )
-# 
-# 
-# #
-# dropout_barcodes_pivot_filtered <- dropout_barcodes_pivot %>% filter(name %in% c("log2_diff_zscore_atr", "log2_diff_zscore_cis"))
-# 
-# 
-# # desktop
-# ggplot(dropout_barcodes_pivot_filtered, aes(x = name, y = value)) + 
-#   geom_boxplot() +
-#   scale_y_continuous(trans='log10')  +
-#   stat_compare_means() +
-#   stat_compare_means() 
-# 
-# 
-# ggplot(dropout_barcodes_pivot, aes(x = name, y = value)) + 
-#   geom_boxplot() +
-#   scale_y_continuous(trans='log10')  +
-#   stat_compare_means() +
-#   stat_compare_means() 
-# 
-# 
-# 
-# # creating a dataframe without the barcodes
-# diff_only <- difference_4_drugs[,-1]
-# 
-# 
-# 
-# 
-# 
-# 

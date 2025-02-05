@@ -423,14 +423,14 @@ sums_df$sample_type <- factor(sums_df$sample_type, levels = sort(unique(sums_df$
 # Create the plot with a log scale on the y-axis and font sizes set to 8
 plot <- ggplot(sums_df, aes(x = sample_type, y = total_sum)) +
   geom_bar(stat = "identity") +
-  theme_bw(base_size = 8) +  # Set base font size to 8
-  labs(title = "OS052 Count sums", x = "Sample", y = "Total Counts (log scale)") +
+  theme_bw(base_size = 10) +  # Set base font size to 8
+  labs(title = "OS742 Count sums", x = "Sample", y = "Total Counts (log scale)") +
   scale_y_log10() +  # Set y-axis to log scale
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # Rotate X labels for readability, font size 8
-        axis.text.y = element_text(size = 8), # Y-axis text size 8
-        axis.title.x = element_text(size = 8), # X-axis title size 8
-        axis.title.y = element_text(size = 8), # Y-axis title size 8
-        plot.title = element_text(size = 8),   # Title font size 8
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10), # Rotate X labels for readability, font size 8
+        axis.text.y = element_text(size = 10), # Y-axis text size 8
+        axis.title.x = element_text(size = 11), # X-axis title size 8
+        axis.title.y = element_text(size = 11), # Y-axis title size 8
+        plot.title = element_text(size = 11),   # Title font size 8
         panel.grid.major = element_blank(),    # Remove major gridlines
         panel.grid.minor = element_blank())    # Remove minor gridlines
 
