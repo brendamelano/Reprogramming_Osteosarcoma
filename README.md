@@ -8,6 +8,8 @@ Section 1: Identifying states A, B and C within the OS PDX-derived cell lines. T
 - The plain_scRNAseq_analysis.ipynb script contains the code for State definition using the NMF method.
 
 Section 2: Identifying the sensitive state using a lineage tracing approach. 
+ 
+- The lineage tracing folder contains the scripts for this analysis
 
 Section 3: Identifying candidate drivers for the different states
 
