@@ -149,6 +149,7 @@ OS052_atr_final <- OS052_atr_log_scaled
 
 ### PLOTTING THE REPLICATES TO CHECK PRECISION
 
+
 # Perform regression analysis
 # model <- lm(barcode_count_atr_1_log ~ barcode_count_atr_3_log, data = OS052_atr_final)
 # 
@@ -371,7 +372,6 @@ ggsave("~/Desktop/OS052_count_distribution.svg", plot = p, width = 3, height = 2
 # #######   Visualizing overlapping barcodes for the different samples and checking significance using hypergeometric tests   ########
 # 
 
-library(VennDiagram)
 
 
 depleted_pf <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/OS052/depleted_LT_barcodes_pf_OS052_LT.txt", header = F)
