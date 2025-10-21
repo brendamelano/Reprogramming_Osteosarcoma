@@ -14,12 +14,12 @@ library(dplyr)
 Fastq_sequences <- read.delim("~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS384/OS384_in_vivo_LT_barcodes.txt", header = F)
 
 
-# reading in the depleted LT barcode sequences
+# Reading in the depleted LT barcode sequences
 depleted_barcodes <- read.csv("~/Desktop/OS384_atr_depleted_barcodes_LT.txt", header = F)
 depleted_barcodes <- depleted_barcodes[,1]
 
 
-# filtering the fastq sequences based on the depleted barcode sequences
+# Filtering the fastq sequences based on the depleted barcode sequences
 filtered_fastqs <- dplyr::filter(Fastq_sequences, grepl(paste(depleted_barcodes, collapse="|"), V1))
 
 
@@ -31,7 +31,7 @@ cell_barcodes <- substr(filtered_fastqs$V1, 1, 16)
 cell_barcodes <- paste(cell_barcodes, "-1", sep = "")
 
 
-# writing out the csv to upload into r on desktop
+# Writing out the csv to upload into r on desktop
 write.csv(cell_barcodes, "~/Desktop/Reprogramming_Osteosarcoma/Lineage_Tracing/scRNAseq_LT_analysis/OS384/depleted_cell_atr_barcodesOS384_inVivo.csv")
 
 
@@ -74,7 +74,7 @@ LT_depleted_cluster_3 <- as.vector(na.omit(depleted_cluster_3_fastqs$LT_barcode)
 write.csv(LT_depleted_cluster_3, file="~/Desktop/LT_depleted_cluster_3.csv", row.names=FALSE)
 
 
-#####   enriched barcodes   ##########
+#####   Enriched barcodes   ##########
 
 
 # reading in the depleted LT barcode sequences
@@ -99,34 +99,6 @@ enriched_cell_barcodes <- paste(enriched_cell_barcodes, "-1", sep = "")
 write.csv(enriched_cell_barcodes, "~/Desktop/enriched_cell_barcodesOS384_inVivo.csv")
 
 
-
-#####   plotting barcodes for trajectory   ##########
-
-
-# reading in the depleted LT barcode sequences
-trajectory_barcodes <- read.csv("~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
-trajectory_barcodes <- trajectory_barcodes[,2]
-
-
-
-# filtering the fastq sequences based on the depleted barcode sequences
-filtered_fastqs_trajectory <- dplyr::filter(Fastq_sequences, grepl(paste(trajectory_barcodes, collapse="|"), V1))
-single_trajectory_fastq <- dplyr::filter(Fastq_sequences, grepl("GTTTTCATACATGCCATG", V1))
-
-
-# Getting the cell barcode sequences for the fastq sequences that remained (first 16 bases)
-trajectory_cell_barcodes <- substr(filtered_fastqs_trajectory$V1, 1, 16)
-OS384_single_trajectory_cell_barcodes <- substr(single_trajectory_fastq$V1, 1, 16)
-
-
-# adding the "-1" to the barcode sequences
-trajectory_cell_barcodes <- paste(trajectory_cell_barcodes, "-1", sep = "")
-OS384_single_trajectory_cell_barcodes <- paste(OS384_single_trajectory_cell_barcodes, "-1", sep = "")
-
-
-# writing out the csv to upload into r on desktop
-write.csv(trajectory_cell_barcodes, "~/Desktop/scRNAseq_LT_analysis/trajectory_cell_barcodes.csv")
-write.csv(OS384_single_trajectory_cell_barcodes, "~/Desktop/OS384_single_trajectory_cell_barcodes.csv")
 
 
 
@@ -283,10 +255,10 @@ write.csv(enriched_cell_barcodes, "~/Desktop/Osteo_Lineage_Tracing_Analysis/scRN
 
 
 
-#####   plotting barcodes for trajectory   ##########
+#####   Plotting barcodes for trajectory   ##########
 
 
-# reading in the depleted LT barcode sequences
+# Reading in the depleted LT barcode sequences
 trajectory_barcodes <- read.csv("~/Desktop/scRNAseq_LT_analysis/OS384_trajectory_LT_barcodes.csv")
 trajectory_barcodes <- trajectory_barcodes[,2]
 
